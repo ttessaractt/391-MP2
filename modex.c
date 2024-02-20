@@ -622,7 +622,7 @@ void draw_full_block(int pos_x, int pos_y, unsigned char* blk) {
  *   SIDE EFFECTS: draws into the build buffer
  */
 int draw_vert_line(int x) {
-   /* unsigned char buf[SCROLL_Y_DIM];    // buffer for graphical image of line 
+    unsigned char buf[SCROLL_Y_DIM];    // buffer for graphical image of line 
     unsigned char* addr;                // address of first pixel in build    
                                         //     buffer (without plane offset)  
     int p_off;                          // offset of plane of first pixel     
@@ -636,10 +636,11 @@ int draw_vert_line(int x) {
     x += show_x;
 
     // Get the image of the line.
-    (*vert_line_fn) (show_y, x, buf);
+    (*vert_line_fn) (x, show_y, buf);
 
     // Calculate starting address in build buffer.
-    addr = img3 + x * SCROLL_Y_DIM;
+    addr = img3 + (show_y >> 2) + x * (SCROLL_Y_DIM / 4);
+    //+ x * (SCROLL_Y_DIM / 4);
     // + (show_y >> 2) + x * (SCROLL_Y_DIM / 4);
 
     // Calculate plane offset of first pixel. 
@@ -650,10 +651,11 @@ int draw_vert_line(int x) {
         addr[p_off * SCROLL_SIZE] = buf[i];
         if (--p_off < 0) {
             p_off = 3;
+            //y++;
             addr++;
         }
     }
-*/
+
     // Return success.
     return 0;
 }
