@@ -639,7 +639,7 @@ int draw_vert_line(int x) {
     (*vert_line_fn) (x, show_y, buf);
 
     // Calculate starting address in build buffer.
-    //addr = img3 + (x >> 2) + show_y * SCROLL_X_WIDTH;
+    addr = img3 + (x >> 2) + show_y * SCROLL_X_WIDTH;
     //img3 + (x >> 2) + show_y * SCROLL_X_WIDTH; 
     // * SCROLL_X_WIDTH;
     //+ x * (SCROLL_Y_DIM / 4);
@@ -650,9 +650,8 @@ int draw_vert_line(int x) {
 
     // Copy image data into appropriate planes in build buffer. 
     for (y = show_y; y < SCROLL_Y_DIM; y++) {
-        addr = img3 + (x >> 2) + y * SCROLL_X_WIDTH;
         addr[p_off * SCROLL_SIZE] = buf[y];
-        
+        addr = img3 + (x >> 2) + y * SCROLL_X_WIDTH;
     }
 
     // Return success.

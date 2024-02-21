@@ -8,3 +8,7 @@ buglog
     2/21 - i have figured out my code is only changing the pixels that are garbage and the mirror part happens when my vert is commented
     - significant progress has been made! still has some bugs (a few cunks are wrong) but it mostly works
     - i never actually changes the way i was copying into build buffer to vertical, it was still horizontal
+2. 2/21 - when going back and forth black lines & blue bar on top get erased, some grey sticks around on outer border
+    - does not work on bottom, gets quite messed up when scrolling multiple times
+    - draws a little in the bottom right corner, mostly messed up in corners
+    
