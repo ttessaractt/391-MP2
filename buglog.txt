@@ -5,3 +5,6 @@ buglog
     - makes some garbage pixels (some random colors) on the bottom 
     - i thought i figured out how it works but i guess not
     - when scrolling -> right and then back left the wall is like a chunk over from where it should be
+    2/21 - i have figured out my code is only changing the pixels that are garbage and the mirror part happens when my vert is commented
+    - significant progress has been made! still has some bugs (a few cunks are wrong) but it mostly works
+    - i never actually changes the way i was copying into build buffer to vertical, it was still horizontal
