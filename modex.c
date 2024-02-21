@@ -632,26 +632,25 @@ int draw_vert_line(int x) {
     if (x < 0 || x >= SCROLL_X_DIM)
         return -1;
 
-    // Adjust y to the logical row value.
+    // Adjust x to the logical col value.
     x += show_x;
 
     // Get the image of the line.
     (*vert_line_fn) (x, show_y, buf);
 
     // Calculate starting address in build buffer.
-    addr = img3 + (show_y >> 2) + x * (SCROLL_Y_DIM / 4);
+    addr = img3 + (x >> 2) + show_y;
     //+ x * (SCROLL_Y_DIM / 4);
     // + (show_y >> 2) + x * (SCROLL_Y_DIM / 4);
 
     // Calculate plane offset of first pixel. 
-    p_off = (3 - (show_y & 3));
+    p_off = (3 - (x & 3));
 
     // Copy image data into appropriate planes in build buffer. 
-    for (i = 0; i < SCROLL_Y_DIM; i++) {
+    for (i = 0; i < SCROLL_X_DIM; i++) {
         addr[p_off * SCROLL_SIZE] = buf[i];
         if (--p_off < 0) {
             p_off = 3;
-            //y++;
             addr++;
         }
     }

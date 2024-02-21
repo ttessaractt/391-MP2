@@ -1,0 +1,7 @@
+buglog
+
+1. 2/20 - draw_vert_line() not working, need to understand draw_horiz_line
+    - code currently takes what is on the opposite side of screen and using that 
+    - makes some garbage pixels (some random colors) on the bottom 
+    - i thought i figured out how it works but i guess not
+    - when scrolling -> right and then back left the wall is like a chunk over from where it should be
