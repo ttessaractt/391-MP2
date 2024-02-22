@@ -85,10 +85,26 @@ static unsigned short mode_X_seq[NUM_SEQUENCER_REGS] = {
 };
 static unsigned short mode_X_CRTC[NUM_CRTC_REGS] = {
     0x5F00, 0x4F01, 0x5002, 0x8203, 0x5404, 0x8005, 0xBF06, 0x1F07,
-    0x0008, 0x4109, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
+    0x0008, 0x0109, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
     0x9C10, 0x8E11, 0x8F12, 0x2813, 0x0014, 0x9615, 0xB916, 0xE317,
-    0xFF18
+    0x3618
 };
+/* NUM_CRTC_REGS
+LSB is port
+MSB is data to write to port
+0xXX18 = line comparison register
+0xXX09 = max scan line reg
+
+0x0F07 = overflow reg, set LC8 to 0
+height of status bar, char = 16 pixels + 2 = 18
+    // offset = # of scan lines - height of status bar
+    // offset*2-1
+    // write ___ to Maximum Scan Line Register (Index 09h), bit 6 is but 9 of line compare
+    // 0-7 Line Compare Register (Index 18h)
+    // bit 8 is bit 4 in overflow register
+
+*/
+
 static unsigned char mode_X_attr[NUM_ATTR_REGS * 2] = {
     0x00, 0x00, 0x01, 0x01, 0x02, 0x02, 0x03, 0x03,
     0x04, 0x04, 0x05, 0x05, 0x06, 0x06, 0x07, 0x07,
@@ -300,7 +316,9 @@ int set_mode_X(void (*horiz_fill_fn)(int, int, unsigned char[SCROLL_X_DIM]),
     }
 
     /* One display page goes at the start of video memory. */
-    target_img = 0x0000;
+    // offset = # of scan lines - height of status bar
+    // offset*2-1
+    target_img = 0x016B; // (change to size of status bar)
 
     /* Map video memory and obtain permission for VGA port access. */
     if (open_memory_and_ports() == -1)
