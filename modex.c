@@ -87,7 +87,7 @@ static unsigned short mode_X_CRTC[NUM_CRTC_REGS] = {
     0x5F00, 0x4F01, 0x5002, 0x8203, 0x5404, 0x8005, 0xBF06, 0x1F07,
     0x0008, 0x0109, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
     0x9C10, 0x8E11, 0x8F12, 0x2813, 0x0014, 0x9615, 0xB916, 0xE317,
-    0x3618
+    0x4818
 };
 /* NUM_CRTC_REGS
 LSB is port
@@ -318,7 +318,7 @@ int set_mode_X(void (*horiz_fill_fn)(int, int, unsigned char[SCROLL_X_DIM]),
     /* One display page goes at the start of video memory. */
     // offset = # of scan lines - height of status bar
     // offset*2-1
-    target_img = 0x016B; // (change to size of status bar)
+    target_img = 0x4E20; // (change to size of status bar)
 
     /* Map video memory and obtain permission for VGA port access. */
     if (open_memory_and_ports() == -1)
