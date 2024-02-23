@@ -38,33 +38,110 @@
 
 #include "text.h"
 
-
+static void copy_image_sb(unsigned char* img, unsigned short scr_addr);
+static unsigned char* mem_image2;    /* pointer to start of video memory */
+static unsigned short target_img2;
 /*
 Given string, produce a buffer that holds a graphical image of the ASCII characters in the string
+
+buffer will be written at video mem address 0x0000
 */
-/*
-void(unsigned char *string){
-    //unsigned char buf[size of status bar] // buffer to write into
-    for (size_t a = 0; a < strlen(string); a++) {   // go through string
-        int x = string[a];      // get ASCII code of character
+
+void string_to_font(char string){
+    int size = 0;   //width
+    int x = 1;
+    int y = 1;
+    //unsigned char* addr; // addr into buffer
+    unsigned char buf2[0x140*0x012];    // buffer to write into, size of status bar
+    size_t g;
+    g = strlen(string);
+    target_img2 = 0x0000;
+
+    size_t a; int b; int c; int e; int f;
+    for (a = 0; a < g; a++) {   // go through string
+        int z = string[a];      // get ASCII code of character
         // font_data[(ASCII code)*16]
 
-
+        //addr = (x >> 2) + y * (320-y);   
         // add ascii char to buffer
+        for (b = x; b <= x+8; b++){
+            for (c = y; c <= 17; c++){
+                //addr = target_img + (b >> 2) + c * size;
+                if (x <= 319){
+                    buf2[b*c] = font_data[z*16][c];
+                }
+            }
 
-        //unsigned char* fonts; // pointer into video memory                    
-        // Copy font data from array into video memory. 
-        //for (i = 0, fonts = mem_image; i < 256; i++) {
-        //    for (j = 0; j < 16; j++)
-        //       fonts[j] = font_data[i][j];
-        //    fonts += 32; // skip 16 bytes between characters 
-        //}
-        //printf("myString[%lu] = %c\n", i, myString[i]);
-        
+        }
+        size += 8;
+        x += 8;
     }
-    //return 0;
+    size += 2;
+
+    
+
+    for (e = 0; e < size; e ++){        //x
+        for (f = 0; f < 18; f ++){      //y
+            //addr2 = target_img + e + f*size;
+            //copy_image_sb(buf2, target_img2);
+
+        }
+    }
+    //return size;
 };
+
+
+/*
+ * copy_image
+ *   DESCRIPTION: Copy one plane of a screen from the buffer to the
+ *                video memory.
+ *   INPUTS: img -- a pointer to a buffer
+ *           scr_addr -- the destination offset in video memory
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: copies a plane from the buffer to video memory
+ */
+ /*
+static void copy_image_sb(unsigned char* img, unsigned short scr_addr) {
+    asm volatile ("                                             \n\
+        cld                                                     \n\
+        movl $16000,%%ecx                                       \n\
+        rep movsb    // copy ECX bytes from M[ESI] to M[EDI]  \n\
+        "
+        : // no outputs 
+        : "S"(img), "D"(mem_image2 + scr_addr)
+        : "eax", "ecx", "memory"
+    );
+}
 */
+
+/*
+
+// structure used to hold game information 
+typedef struct {
+    // parameters varying by level   
+    int number;                  // starts at 1...                   
+    int maze_x_dim, maze_y_dim;  // min to max, in steps of 2        
+    int initial_fruit_count;      //1 to 6, in steps of 1/2          
+    int time_to_first_fruit;      //300 to 120, in steps of -30      
+    int time_between_fruits;     //300 to 60, in steps of -30       
+    int tick_usec;         //20000 to 5000, in steps of -1750 
+    
+    // dynamic values within a level -- you may want to add more... 
+    unsigned int map_x, map_y;   //current upper left display pixel 
+} game_info_t;
+
+static game_info_t game_info;
+
+*/
+void draw_text(unsigned char buf[], int size){
+
+
+
+};
+
+
+
 /* 
  * These font data were read out of video memory during text mode and
  * saved here.  They could be read in the same manner at the start of a

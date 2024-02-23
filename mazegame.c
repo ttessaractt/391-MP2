@@ -421,6 +421,7 @@ static void *rtc_thread(void *arg) {
         (void)unveil_around_player(play_x, play_y);
 
         draw_full_block(play_x, play_y, get_player_block(last_dir));
+        //string_to_font(game_info.number); does not go here, makes screen black
         show_screen();
 
         // get first Periodic Interrupt
