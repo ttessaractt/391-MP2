@@ -421,6 +421,13 @@ static void *rtc_thread(void *arg) {
         (void)unveil_around_player(play_x, play_y);
 
         draw_full_block(play_x, play_y, get_player_block(last_dir));
+
+        unsigned char buf2[0x140*0x012];
+        int size;
+        char * c;
+        *c = game_info.number;
+        size = string_to_font(c, buf2);
+        //draw_text(buf2, size);
         //string_to_font(game_info.number); does not go here, makes screen black
         show_screen();
 

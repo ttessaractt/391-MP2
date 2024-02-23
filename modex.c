@@ -1033,6 +1033,43 @@ static void copy_image(unsigned char* img, unsigned short scr_addr) {
 #ifdef TEXT_RESTORE_PROGRAM
 
 /*
+ * copy_image
+ *   DESCRIPTION: Copy one plane of a screen from the buffer to the
+ *                video memory.
+ *   INPUTS: img -- a pointer to a buffer
+ *           scr_addr -- the destination offset in video memory
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: copies a plane from the buffer to video memory
+ */
+ 
+static void copy_image_sb(unsigned char* img, unsigned short scr_addr) {
+    asm volatile ("                                             \n\
+        cld                                                     \n\
+        movl $5760,%%ecx                                       \n\
+        rep movsb    /* copy ECX bytes from M[ESI] to M[EDI] */ \n\
+        "
+        : // no outputs 
+        : "S"(img), "D"(mem_image + scr_addr)
+        : "eax", "ecx", "memory"
+    );
+}
+
+
+void draw_text(unsigned char buf2[], int size){
+    int e; int f;
+    //for (e = 0; e < size; e ++){        //x
+      //  for (f = 0; f < 18; f ++){      //y
+            //addr2 = target_img + e + f*size;
+            copy_image_sb(buf2, 0x0000);
+
+        //}
+    //}
+
+};
+
+
+/*
  * main -- for the "tr" program
  *   DESCRIPTION: Put the VGA into text mode 3 without clearing the screens,
  *                which serves as a useful debugging tool when trying to
