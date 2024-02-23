@@ -46,5 +46,4 @@ extern unsigned char font_data[256][16];
 
 extern int string_to_font(const char *string, unsigned char buf2[]);
 
-
 #endif /* TEXT_H */

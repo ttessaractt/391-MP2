@@ -427,8 +427,7 @@ static void *rtc_thread(void *arg) {
         char * c;
         *c = game_info.number;
         size = string_to_font(c, buf2);
-        //draw_text(buf2, size);
-        //string_to_font(game_info.number); does not go here, makes screen black
+        draw_text(buf2, size);
         show_screen();
 
         // get first Periodic Interrupt

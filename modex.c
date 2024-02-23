@@ -159,6 +159,7 @@ static void fill_palette();
 static void write_font_data();
 static void set_text_mode_3(int clear_scr);
 static void copy_image(unsigned char* img, unsigned short scr_addr);
+static void copy_image_sb(unsigned char* img2, unsigned short scr_addr2);
 
 /*
  * Images are built in this buffer, then copied to the video memory.
@@ -1030,8 +1031,6 @@ static void copy_image(unsigned char* img, unsigned short scr_addr) {
     );
 }
 
-#ifdef TEXT_RESTORE_PROGRAM
-
 /*
  * copy_image
  *   DESCRIPTION: Copy one plane of a screen from the buffer to the
@@ -1043,32 +1042,41 @@ static void copy_image(unsigned char* img, unsigned short scr_addr) {
  *   SIDE EFFECTS: copies a plane from the buffer to video memory
  */
  
-static void copy_image_sb(unsigned char* img, unsigned short scr_addr) {
+static void copy_image_sb(unsigned char* img2, unsigned short scr_addr2) {
     asm volatile ("                                             \n\
         cld                                                     \n\
         movl $5760,%%ecx                                       \n\
         rep movsb    /* copy ECX bytes from M[ESI] to M[EDI] */ \n\
         "
         : // no outputs 
-        : "S"(img), "D"(mem_image + scr_addr)
+        : "S"(img2), "D"(mem_image + scr_addr2)
         : "eax", "ecx", "memory"
     );
 }
 
 
 void draw_text(unsigned char buf2[], int size){
-    int e; int f;
+    //int e; int f;
     //for (e = 0; e < size; e ++){        //x
       //  for (f = 0; f < 18; f ++){      //y
             //addr2 = target_img + e + f*size;
-            copy_image_sb(buf2, 0x0000);
+           // copy_image_sb(buf2, 0x0000);
 
         //}
     //}
+    target_img = 0x0000;
+    copy_image_sb(buf2, target_img);
 
+    /*
+     * Change the VGA registers to point the top left of the screen
+     * to the video memory that we just filled.
+     */
+    //OUTW(0x03D4, (target_img & 0xFF00) | 0x0C);
+    //OUTW(0x03D4, ((target_img & 0x00FF) << 8) | 0x0D);
 };
 
 
+#ifdef TEXT_RESTORE_PROGRAM
 /*
  * main -- for the "tr" program
  *   DESCRIPTION: Put the VGA into text mode 3 without clearing the screens,
