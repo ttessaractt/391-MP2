@@ -11,4 +11,6 @@ buglog
 2. 2/21 - when going back and forth black lines & blue bar on top get erased, some grey sticks around on outer border
     - does not work on bottom, gets quite messed up when scrolling multiple times
     - draws a little in the bottom right corner, mostly messed up in corners
-    
+
+3. 2/21 - split screen happening at wrong location
+    - had wrong # of bits in the line compare register    

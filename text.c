@@ -38,6 +38,33 @@
 
 #include "text.h"
 
+
+/*
+Given string, produce a buffer that holds a graphical image of the ASCII characters in the string
+*/
+/*
+void(unsigned char *string){
+    //unsigned char buf[size of status bar] // buffer to write into
+    for (size_t a = 0; a < strlen(string); a++) {   // go through string
+        int x = string[a];      // get ASCII code of character
+        // font_data[(ASCII code)*16]
+
+
+        // add ascii char to buffer
+
+        //unsigned char* fonts; // pointer into video memory                    
+        // Copy font data from array into video memory. 
+        //for (i = 0, fonts = mem_image; i < 256; i++) {
+        //    for (j = 0; j < 16; j++)
+        //       fonts[j] = font_data[i][j];
+        //    fonts += 32; // skip 16 bytes between characters 
+        //}
+        //printf("myString[%lu] = %c\n", i, myString[i]);
+        
+    }
+    //return 0;
+};
+*/
 /* 
  * These font data were read out of video memory during text mode and
  * saved here.  They could be read in the same manner at the start of a

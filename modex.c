@@ -87,7 +87,7 @@ static unsigned short mode_X_CRTC[NUM_CRTC_REGS] = {
     0x5F00, 0x4F01, 0x5002, 0x8203, 0x5404, 0x8005, 0xBF06, 0x1F07,
     0x0008, 0x0109, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
     0x9C10, 0x8E11, 0x8F12, 0x2813, 0x0014, 0x9615, 0xB916, 0xE317,
-    0x4818
+    0x6C18
 };
 /* NUM_CRTC_REGS
 LSB is port
@@ -99,10 +99,17 @@ MSB is data to write to port
 height of status bar, char = 16 pixels + 2 = 18
     // offset = # of scan lines - height of status bar
     // offset*2-1
-    // write ___ to Maximum Scan Line Register (Index 09h), bit 6 is but 9 of line compare
+    // write ___ to Maximum Scan Line Register (Index 09h), bit 6 is bit 9 of line compare
     // 0-7 Line Compare Register (Index 18h)
     // bit 8 is bit 4 in overflow register
 
+scan lines:
+based on inputs
+100 character clocks per scan line
+# of scan lines in active display: 399
+0-7 = 8F
+8 = 1
+9 = 0
 */
 
 static unsigned char mode_X_attr[NUM_ATTR_REGS * 2] = {
@@ -318,7 +325,8 @@ int set_mode_X(void (*horiz_fill_fn)(int, int, unsigned char[SCROLL_X_DIM]),
     /* One display page goes at the start of video memory. */
     // offset = # of scan lines - height of status bar
     // offset*2-1
-    target_img = 0x4E20; // (change to size of status bar)
+    // addr = ((182 * 2) * 4)-1
+    target_img = 0x05AF; // (change to size of status bar)
 
     /* Map video memory and obtain permission for VGA port access. */
     if (open_memory_and_ports() == -1)
