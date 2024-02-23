@@ -676,9 +676,9 @@ int draw_vert_line(int x) {
     p_off = (3 - (x & 3));
 
     // Copy image data into appropriate planes in build buffer. 
-    for (y = show_y; y < SCROLL_Y_DIM; y++) {
+    for (y = show_y; y < SCROLL_X_WIDTH; y++) {
         addr[p_off * SCROLL_SIZE] = buf[y];
-        addr = img3 + (x >> 2) + y * SCROLL_X_WIDTH;
+        addr = addr + SCROLL_X_WIDTH;
     }
 
     // Return success.
@@ -1064,8 +1064,23 @@ void draw_text(unsigned char buf2[], int size){
 
         //}
     //}
+    int p_off;
+    int i;
+    unsigned char *addr;
+    
+    p_off = (3 - (show_x & 3));
+
     target_img2 = 0x0000;
-    copy_image_sb(buf2, target_img2);
+
+    addr = &buf2[0];
+    //addr = img3 + (show_x >> 2) + show_y * SCROLL_X_WIDTH;
+    for (i = 0; i < 4; i++) {
+        SET_WRITE_MASK(1 << (i + 8));
+        copy_image(addr + ((p_off - i + 4) & 3)+(p_off < i), target_img2);
+
+        //copy_image(addr + ((p_off - i + 4) & 3) * SCROLL_SIZE + (p_off < i), target_img2);
+    }
+    //copy_image_sb(buf2, target_img2);
 
     /*
      * Change the VGA registers to point the top left of the screen

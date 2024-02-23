@@ -42,12 +42,16 @@
 Given string, produce a buffer that holds a graphical image of the ASCII characters in the string
 
 buffer will be written at video mem address 0x0000
+
+buf2 is in mode X mem
 */
 
 int string_to_font(const char *string, unsigned char buf2[]){
+    buf2 = {0}
     int size = 0;   //width
-    int x = 1;
-    int y = 1;
+    int x = 1;      //keep track of starting x of char (changes)
+    int y = 1;      //starting y of char (const)
+    int p_off;
     //unsigned char* addr; // addr into buffer
     //unsigned char buf2[0x140*0x012];    // buffer to write into, size of status bar
     size_t g;
@@ -61,18 +65,16 @@ int string_to_font(const char *string, unsigned char buf2[]){
 
         //addr = (x >> 2) + y * (320-y);   
         // add ascii char to buffer
-        for (b = x; b < 320; b++){
-            for (c = 0; c < 16; c++){
-                //addr = target_img + (b >> 2) + c * size;
-                if (b <= x+8){
-                    buf2[b+(c*320)] = font_data[z*16][c];
-                }
-                else{
-                    b = x;
-                    
+        p_off = (3 - (show_x & 3));
+
+        //drawing horizontally 1st, then vertically
+        for (c = 1; c < 17; c ++){   //start at y = 1 for row above
+            for (b = x; b < x+8; b++){     //start at x (offset from 0)
+                buf2[p_off*((b >> 4)+(c*320))] = font_data[z*16][(c-1)];
+                if (--p_off < 0) {
+                    p_off = 3;
                 }
             }
-
         }
         size += 8;
         x += 8;

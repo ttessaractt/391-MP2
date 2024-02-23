@@ -422,7 +422,7 @@ static void *rtc_thread(void *arg) {
 
         draw_full_block(play_x, play_y, get_player_block(last_dir));
 
-        unsigned char buf2[0x05AF];
+        unsigned char buf2[0x16BC]; //0x5AF *2
         int size;
         const char * c = "Level";
         size = string_to_font(c, buf2);
