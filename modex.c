@@ -202,7 +202,7 @@ static int show_x, show_y;          /* logical view coordinates     */
                                     /* displayed video memory variables */
 static unsigned char* mem_image;    /* pointer to start of video memory */
 static unsigned short target_img;   /* offset of displayed screen image */
-
+static unsigned short target_img2;
 /*
  * functions provided by the caller to set_mode_X() and used to obtain
  * graphic images of lines (pixels) to be mapped into the build buffer
@@ -1045,7 +1045,7 @@ static void copy_image(unsigned char* img, unsigned short scr_addr) {
 static void copy_image_sb(unsigned char* img2, unsigned short scr_addr2) {
     asm volatile ("                                             \n\
         cld                                                     \n\
-        movl $5760,%%ecx                                       \n\
+        movl $16000,%%ecx                                       \n\
         rep movsb    /* copy ECX bytes from M[ESI] to M[EDI] */ \n\
         "
         : // no outputs 
@@ -1064,8 +1064,8 @@ void draw_text(unsigned char buf2[], int size){
 
         //}
     //}
-    target_img = 0x0000;
-    copy_image_sb(buf2, target_img);
+    target_img2 = 0x0000;
+    copy_image_sb(buf2, target_img2);
 
     /*
      * Change the VGA registers to point the top left of the screen

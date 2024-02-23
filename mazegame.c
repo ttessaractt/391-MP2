@@ -422,10 +422,9 @@ static void *rtc_thread(void *arg) {
 
         draw_full_block(play_x, play_y, get_player_block(last_dir));
 
-        unsigned char buf2[0x140*0x012];
+        unsigned char buf2[0x05AF];
         int size;
-        char * c;
-        *c = game_info.number;
+        const char * c = "Level";
         size = string_to_font(c, buf2);
         draw_text(buf2, size);
         show_screen();

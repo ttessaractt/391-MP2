@@ -61,11 +61,15 @@ int string_to_font(const char *string, unsigned char buf2[]){
 
         //addr = (x >> 2) + y * (320-y);   
         // add ascii char to buffer
-        for (b = x; b <= x+8; b++){
-            for (c = y; c <= 17; c++){
+        for (b = x; b < 320; b++){
+            for (c = 0; c < 16; c++){
                 //addr = target_img + (b >> 2) + c * size;
-                if (x <= 319){
-                    buf2[b*c] = font_data[z*16][c];
+                if (b <= x+8){
+                    buf2[b+(c*320)] = font_data[z*16][c];
+                }
+                else{
+                    b = x;
+                    
                 }
             }
 
