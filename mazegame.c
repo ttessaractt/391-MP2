@@ -35,6 +35,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <string.h>
 
 #include "blocks.h"
 #include "maze.h"
@@ -422,10 +423,13 @@ static void *rtc_thread(void *arg) {
 
         draw_full_block(play_x, play_y, get_player_block(last_dir));
 
-        unsigned char buf2[0x16BC]; //0x5AF *2
+        unsigned char buf2[0x1680]; //0x1680 *4
         int size;
-        const char * c = "Level";
-        size = string_to_font(c, buf2);
+        const char * c = "lollol";
+        //size_t s;
+        //s = strlen(c);
+        //unsigned char buf2[((s*8)/4)*18*4];
+        size = string_to_font(c, buf2, 0);
         draw_text(buf2, size);
         show_screen();
 

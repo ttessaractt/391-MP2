@@ -327,7 +327,7 @@ int set_mode_X(void (*horiz_fill_fn)(int, int, unsigned char[SCROLL_X_DIM]),
     // offset = # of scan lines - height of status bar
     // offset*2-1
     // addr = ((182 * 2) * 4)-1
-    target_img = 0x05AF; // (change to size of status bar)
+    target_img = 0x05A0; // ((320*18)/4 = 1440 mem addresses)
 
     /* Map video memory and obtain permission for VGA port access. */
     if (open_memory_and_ports() == -1)
@@ -1035,8 +1035,8 @@ static void copy_image(unsigned char* img, unsigned short scr_addr) {
  * copy_image
  *   DESCRIPTION: Copy one plane of a screen from the buffer to the
  *                video memory.
- *   INPUTS: img -- a pointer to a buffer
- *           scr_addr -- the destination offset in video memory
+ *   INPUTS: img2 -- a pointer to a buffer
+ *           scr_addr2 -- the destination offset in video memory
  *   OUTPUTS: none
  *   RETURN VALUE: none
  *   SIDE EFFECTS: copies a plane from the buffer to video memory
@@ -1045,7 +1045,7 @@ static void copy_image(unsigned char* img, unsigned short scr_addr) {
 static void copy_image_sb(unsigned char* img2, unsigned short scr_addr2) {
     asm volatile ("                                             \n\
         cld                                                     \n\
-        movl $16000,%%ecx                                       \n\
+        movl $360,%%ecx                                       \n\
         rep movsb    /* copy ECX bytes from M[ESI] to M[EDI] */ \n\
         "
         : // no outputs 
@@ -1066,19 +1066,24 @@ void draw_text(unsigned char buf2[], int size){
     //}
     int p_off;
     int i;
-    unsigned char *addr;
+    //int addr;
+    //unsigned char *addr;
     
-    p_off = (3 - (show_x & 3));
+    //p_off = (3 - (0 & 3));
 
     target_img2 = 0x0000;
 
-    addr = &buf2[0];
-    //addr = img3 + (show_x >> 2) + show_y * SCROLL_X_WIDTH;
+    
+    //addr = &buf2[p_off*0x05A0];
+    //addr = (show_x >> 2) + show_y * SCROLL_X_WIDTH;
     for (i = 0; i < 4; i++) {
-        SET_WRITE_MASK(1 << (i + 8));
-        copy_image(addr + ((p_off - i + 4) & 3)+(p_off < i), target_img2);
-
-        //copy_image(addr + ((p_off - i + 4) & 3) * SCROLL_SIZE + (p_off < i), target_img2);
+        SET_WRITE_MASK(1 << (i + 8));   //target specific plane
+        //addr = p_off*0x05A0;
+        copy_image_sb(&buf2[i*0x05A0], target_img2);
+        //copy_image_sb(&buf2[i*0x05A0 + ((p_off - i + 4) & 3)* SCROLL_SIZE+(p_off < i)], target_img2);
+        //copy_image_sb(addr, target_img2);
+        //memcpy(mem_image+target_img2, addr, ((size*18)/8));
+        //copy_image_sb(addr + ((p_off - i + 4) & 3) * SCROLL_SIZE + (p_off < i), target_img2);
     }
     //copy_image_sb(buf2, target_img2);
 

@@ -46,11 +46,12 @@ buffer will be written at video mem address 0x0000
 buf2 is in mode X mem
 */
 
-int string_to_font(const char *string, unsigned char buf2[]){
-    buf2 = {0}
-    int size = 0;   //width
-    int x = 1;      //keep track of starting x of char (changes)
-    int y = 1;      //starting y of char (const)
+int string_to_font(const char *string, unsigned char buf2[], int show_x){
+
+    int size;   //width
+    int x;      //keep track of starting x of char (changes)
+    int y;      //starting y of char (const)
+    x = 0; y = 1; size = 0;
     int p_off;
     //unsigned char* addr; // addr into buffer
     //unsigned char buf2[0x140*0x012];    // buffer to write into, size of status bar
@@ -58,28 +59,34 @@ int string_to_font(const char *string, unsigned char buf2[]){
     g = strlen(string);
     //static unsigned short target_img2 = 0x0000;
 
-    size_t a; int b; int c;
+    size_t a; int b; int c; int d;
     for (a = 0; a < g; a++) {   // go through string
         int z = string[a];      // get ASCII code of character
-        // font_data[(ASCII code)*16]
+        // font_data[(ASCII code)*16][y]
 
         //addr = (x >> 2) + y * (320-y);   
         // add ascii char to buffer
-        p_off = (3 - (show_x & 3));
 
         //drawing horizontally 1st, then vertically
-        for (c = 1; c < 17; c ++){   //start at y = 1 for row above
-            for (b = x; b < x+8; b++){     //start at x (offset from 0)
-                buf2[p_off*((b >> 4)+(c*320))] = font_data[z*16][(c-1)];
+
+        //d is starting x pos for char
+        for (c = 1; c < 18; c++){   //start at y = 1 for row above
+            d = x;
+            p_off = (3 - (d & 3));
+            for (b = 0; b < 8; b++){     //go through each pixel
+                //buf2[(plane offset)+(col+(row*width))]
+                buf2[(p_off*0x05A)+(d+(c*80))] = (font_data[z*16][(c-1)] && b) ;
                 if (--p_off < 0) {
                     p_off = 3;
+                    d++;
                 }
             }
         }
+        x += 2;
         size += 8;
-        x += 8;
+        //x += 8;
     }
-    size += 2;
+    //size += 2;
 
     return size;
 };
