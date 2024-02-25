@@ -159,7 +159,6 @@ static void fill_palette();
 static void write_font_data();
 static void set_text_mode_3(int clear_scr);
 static void copy_image(unsigned char* img, unsigned short scr_addr);
-static void copy_image_sb(unsigned char* img2, unsigned short scr_addr2);
 
 /*
  * Images are built in this buffer, then copied to the video memory.
@@ -202,7 +201,7 @@ static int show_x, show_y;          /* logical view coordinates     */
                                     /* displayed video memory variables */
 static unsigned char* mem_image;    /* pointer to start of video memory */
 static unsigned short target_img;   /* offset of displayed screen image */
-static unsigned short target_img2;
+
 /*
  * functions provided by the caller to set_mode_X() and used to obtain
  * graphic images of lines (pixels) to be mapped into the build buffer
@@ -1031,37 +1030,25 @@ static void copy_image(unsigned char* img, unsigned short scr_addr) {
     );
 }
 
+/*
+ * draw_text
+ *   DESCRIPTION: Show the image in the given buffer on the video display.
+ *   INPUTS: buf2 - a buffer of the status bar with an image (text) to be displayed
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: copies from the provided buffer to video memory;
+ */
 void draw_text(unsigned char* buf2){
-    //unsigned char* addr;    /* source address for copy             */
     int p_off;              /* plane offset of first display plane */
     int i;                  /* loop index over video planes        */
-
-    /*
-     * Calculate offset of build buffer plane to be mapped into plane 0
-     * of display.
-     */
-    //p_off = (3 - (show_x & 3));
-
-    /* Switch to the other target screen in video memory. */
-    //target_img ^= 0x4000;
-
-    /* Calculate the source address. */
-    //addr = img3 + (show_x >> 2) + show_y * SCROLL_X_WIDTH;
 
     /* Draw to each plane in the video memory. */
     for (i = 0; i < 4; i++) {
         SET_WRITE_MASK(1 << (i + 8));
         p_off = (3 - (i & 3));
-        memcpy(mem_image, buf2+(p_off*1440), 1440);
-        //copy_image(addr + ((p_off - i + 4) & 3) * SCROLL_SIZE + (p_off < i), target_img);
+        memcpy(mem_image, buf2+(p_off*SB_BUF_PLANE_SIZE), SB_BUF_PLANE_SIZE);
     }
 
-    /*
-     * Change the VGA registers to point the top left of the screen
-     * to the video memory that we just filled.
-     */
-    //OUTW(0x03D4, (target_img & 0xFF00) | 0x0C);
-    //OUTW(0x03D4, ((target_img & 0x00FF) << 8) | 0x0D);
 };
 
 

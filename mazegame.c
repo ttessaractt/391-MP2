@@ -419,14 +419,10 @@ static void *rtc_thread(void *arg) {
         next_dir = DIR_STOP;
 
         
-        unsigned char buf2[0x1680]; //$1440 *4, 0x05A0 * 4
-        int size;
+        // text text->graphics and display
+        unsigned char buf2[SB_BUF_SIZE]; //$1440 *4, 0x05A0 * 4
         const char * c = "lollol";
-        //size_t s;
-        //s = strlen(c);
-        //unsigned char buf2[((s*8)/4)*18*4];
-
-        string_to_font(c, buf2, 0);
+        string_to_font(c, buf2);
         draw_text(buf2);
 
         // Show maze around the player's original position

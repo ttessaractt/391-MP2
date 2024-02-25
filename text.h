@@ -41,9 +41,15 @@
 #define FONT_WIDTH   8
 #define FONT_HEIGHT  16
 
+#define SB_BUF_PLANE_SIZE 1440                  //size of 1 plane of status bar buffer
+#define SB_BUF_SIZE 5760                        //total size of status bar buffer
+#define SB_BUF_WIDTH 80                         //how many addresses wide status bar buffer is
+#define SB_BUF_CENTER (SB_BUF_WIDTH / 2)        //center address of status bar buffer
+
 /* Standard VGA text font. */
 extern unsigned char font_data[256][16];
 
-extern void string_to_font(const char *string, unsigned char *buf2, int show_x);
+/* text to graphics image generation functiob */
+extern void string_to_font(const char *string, unsigned char *buf2);
 
 #endif /* TEXT_H */

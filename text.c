@@ -46,59 +46,48 @@ buffer will be written at video mem address 0x0000
 buf2 is in mode X mem
 */
 
-void string_to_font(const char *string, unsigned char *buf2, int show_x){
+void string_to_font(const char *string, unsigned char *buf2){
 
-    int p_off;
-    //unsigned char* addr; // addr into buffer
-    //unsigned char buf2[0x140*0x012];    // buffer to write into, size of status bar
-    int length;
-    
-    //static unsigned short target_img2 = 0x0000;
-    int start;
-    
-    int a; int b; int c; int d;
-
-    unsigned char lol;   //line of letter (lol)
+    int p_off;      //plane offset for mode X
+    int length;     //length of string
+    int start;      //where to start drawing text
+    int a; int b; int c; int d; //for loop variables
+    unsigned char lol;   //line of letter (lol) in font_data
     int loc;    //location in buffer
 
-    p_off = (3 - (show_x & 3));
+    p_off = (3 - (0 & 3));  //inital x is 0
 
     //fill buffer with background color
-    for (d = 0; d < 5760; d++){  //prevent random color pixels from showing up
+    for (d = 0; d < SB_BUF_SIZE; d++){  //prevent random color pixels from showing up
         buf2[d] = 0x0;
     }
 
-    length = strlen(string);
-    start = (40 - length);  //center text, (80 col addr / 2) - length
+    length = strlen(string);    //get length of string
+    start = (SB_BUF_CENTER - length);  //center text, (80 col addr / 2) - length
 
     for (a = 0; a < length; a++) {   // go through each char string
         
-        for (c = 0; c < 16; c++){   //rows
-        //p_off = (3 - (show_x & 3));
+        for (c = 0; c < FONT_HEIGHT; c++){   //go through each row in letter
+
             lol = font_data[(int)string[a]][c];  //get line of letter fron font_data
-            for (b = 0; b < 8; b++){     //go through each pixel (aka bit in line of letter)
+
+            for (b = 0; b < FONT_WIDTH; b++){     //go through each pixel (aka bit in line of letter)
                 //loc = 0;
                 //loc += p_off*1440;  //add plane offset
                 //loc += (c+2)*80 + (b/4); //add row+col offset
                 //loc += start; //add start offset
                 //loc += a*2;  //each new character offsets the previous by 2 addr
-                loc = start + (a*2) + ((c+2)*80) + (b/4) + (p_off*1440);
+                loc = start + (a*2) + ((c+2)*80) + (b/4) + (p_off*SB_BUF_PLANE_SIZE);
                 
-                //how to check if bit is 1
-                // did not work when i tried to do lol & b (logical &)
-                // had to do lol & (1 << b)
-                //get individual bit value (bit 0-7)
+                //check which color the pixel is
                 if (lol & (1 << b)){   
-                    buf2[loc] = 0x01;
+                    buf2[loc] = 0x01;   //text color
                 }
-                else{buf2[loc] = 0x02;}
+                else{buf2[loc] = 0x00;} //background
 
-
-                p_off--;
-                //p_off--;
-                if (p_off < 0) {
+                //check if pixel has been drawn to all 4 planes at address
+                if (--p_off < 0) {
                     p_off = 3;
-                    //d++;
                 }
             }
         }
