@@ -93,6 +93,7 @@ typedef struct {
 } game_info_t;
 
 static game_info_t game_info;
+//unsigned char buf2[SB_BUF_SIZE];        //status bar buffer
 
 /* local functions--see function headers for details */
 static int prepare_maze_level(int level);
@@ -103,6 +104,8 @@ static void move_left(int* xpos);
 static int unveil_around_player(int play_x, int play_y);
 static void *rtc_thread(void *arg);
 static void *keyboard_thread(void *arg);
+static void status_bar(unsigned char buf2[], unsigned int level, unsigned int minutes, unsigned int seconds);
+
 
 /* 
  * prepare_maze_level
@@ -395,6 +398,10 @@ static void *rtc_thread(void *arg) {
     int open[NUM_DIRS];
     int need_redraw = 0;
     int goto_next_level = 0;
+    unsigned int min;
+    unsigned int sec;
+    unsigned int time;
+    unsigned char buf2[SB_BUF_SIZE];        //status bar buffer
 
     // Loop over levels until a level is lost or quit.
     for (level = 1; (level <= MAX_LEVEL) && (quit_flag == 0); level++) {
@@ -420,16 +427,19 @@ static void *rtc_thread(void *arg) {
 
         
         // text text->graphics and display
-        unsigned char buf2[SB_BUF_SIZE]; //$1440 *4, 0x05A0 * 4
-        const char * c = "lollol";
-        string_to_font(c, buf2);
-        draw_text(buf2);
+        //unsigned char buf2[SB_BUF_SIZE]; //$1440 *4, 0x05A0 * 4
+        //const char * c = "lollol";
+        min = 0;
+        sec = 0;
+        time = 0;
+        status_bar(buf2, level, min, sec);
 
         // Show maze around the player's original position
         (void)unveil_around_player(play_x, play_y);
 
         draw_full_block(play_x, play_y, get_player_block(last_dir));
 
+        draw_text(buf2);
         show_screen();
 
 
@@ -439,7 +449,21 @@ static void *rtc_thread(void *arg) {
         while ((quit_flag == 0) && (goto_next_level == 0)) {
             // Wait for Periodic Interrupt
             ret = read(fd, &data, sizeof(unsigned long));
-        
+
+            if (time < 32){
+                time++;
+            }
+            else{
+                time = 0;       //reset second counter
+                sec++;      //increase seconds
+                need_redraw = 1; //update screen
+            }
+            if (sec == 60){
+                sec = 0;    //reset seconds
+                min++;      //increase minutes
+                need_redraw = 1;
+            }
+
             // Update tick to keep track of time.  If we missed some
             // interrupts we want to update the player multiple times so
             // that player velocity is smooth
@@ -480,6 +504,7 @@ static void *rtc_thread(void *arg) {
                 }
                 // New Maze Square!
                 if (move_cnt == 0) {
+                        
                     // The player has reached a new maze square; unveil nearby maze
                     // squares and check whether the player has won the level.
                     if (unveil_around_player(play_x, play_y)) {
@@ -537,6 +562,8 @@ static void *rtc_thread(void *arg) {
                 }
             }
             if (need_redraw)
+                status_bar(buf2, level, min, sec);      //update status bar
+                draw_text(buf2);                        //display status bar
                 show_screen();    
             need_redraw = 0;
         }    
@@ -546,6 +573,57 @@ static void *rtc_thread(void *arg) {
     
     return 0;
 }
+
+static void status_bar(unsigned char buf2[], unsigned int level, unsigned int minutes, unsigned int seconds){      //get/set status bar values
+//level
+//# of fruits
+//clock since start of level (in minutes and seconds)
+//int fruit;
+int fruit_count;
+int s;
+int m;
+int r;  //remainder
+char str[40];
+const char *string;      //full string to print
+char str_lvl[3];
+char str_fruit[3];
+char sec[3];
+char min[3];
+
+buf2[0] = '\0'; 
+
+int fruit = game_info.initial_fruit_count - get_num_fruits() ;
+
+//game_info.initial_fruit_count - check_for_fruit(0,0); //returns fruit # consumed, also checks (0,0) for fruit
+sprintf(str_fruit, "%d", fruit);    //convert fruit # to string
+
+sprintf(str_lvl, "%d", level);
+sprintf(sec, "%02d", seconds);
+sprintf(min, "%02d", minutes);
+
+//str_lvl = "Level " + level;
+//str_fruit = fruit + " Fruit";
+//strcat(str_lvl, level);
+//strcat(str_fruit, fruit);
+//strcat(str_fruit, " Fruit");
+//str_time = ticks;
+
+strcpy(str, "Level ");
+strcat(str, str_lvl);
+strcat(str, " ");
+strcat(str, str_fruit);
+strcat(str, " Fruit");
+strcat(str, " ");
+strcat(str, min);
+strcat(str, ":");
+strcat(str, sec);
+//strcat(str, a);
+//string = str_lvl + str_fruit + str_time;
+string = str;
+
+string_to_font(string, buf2);
+};
+
 
 /*
  * main

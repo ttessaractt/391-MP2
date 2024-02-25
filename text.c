@@ -46,7 +46,7 @@ buffer will be written at video mem address 0x0000
 buf2 is in mode X mem
 */
 
-void string_to_font(const char *string, unsigned char *buf2){
+extern void string_to_font(const char *string, unsigned char *buf2){
 
     int p_off;      //plane offset for mode X
     int length;     //length of string
@@ -77,11 +77,11 @@ void string_to_font(const char *string, unsigned char *buf2){
                 //loc += (c+2)*80 + (b/4); //add row+col offset
                 //loc += start; //add start offset
                 //loc += a*2;  //each new character offsets the previous by 2 addr
-                loc = start + (a*2) + ((c+2)*80) + (b/4) + (p_off*SB_BUF_PLANE_SIZE);
+                loc = start + (a*2) + ((c+2)*80) + (b>>2) + (p_off*SB_BUF_PLANE_SIZE);
                 
                 //check which color the pixel is
-                if (lol & (1 << b)){   
-                    buf2[loc] = 0x01;   //text color
+                if (lol & (1 << (8-b))){   
+                    buf2[loc] = 0x07;   //text color
                 }
                 else{buf2[loc] = 0x00;} //background
 

@@ -849,3 +849,8 @@ int main() {
 }
 
 #endif /* TEST_MAZE_GEN */
+
+
+int get_num_fruits(){
+    return n_fruits;
+};
