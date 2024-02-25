@@ -87,30 +87,8 @@ static unsigned short mode_X_CRTC[NUM_CRTC_REGS] = {
     0x5F00, 0x4F01, 0x5002, 0x8203, 0x5404, 0x8005, 0xBF06, 0x1F07,
     0x0008, 0x0109, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
     0x9C10, 0x8E11, 0x8F12, 0x2813, 0x0014, 0x9615, 0xB916, 0xE317,
-    0x6C18
+    0x6B18
 };
-/* NUM_CRTC_REGS
-LSB is port
-MSB is data to write to port
-0xXX18 = line comparison register
-0xXX09 = max scan line reg
-
-0x0F07 = overflow reg, set LC8 to 0
-height of status bar, char = 16 pixels + 2 = 18
-    // offset = # of scan lines - height of status bar
-    // offset*2-1
-    // write ___ to Maximum Scan Line Register (Index 09h), bit 6 is bit 9 of line compare
-    // 0-7 Line Compare Register (Index 18h)
-    // bit 8 is bit 4 in overflow register
-
-scan lines:
-based on inputs
-100 character clocks per scan line
-# of scan lines in active display: 399
-0-7 = 8F
-8 = 1
-9 = 0
-*/
 
 static unsigned char mode_X_attr[NUM_ATTR_REGS * 2] = {
     0x00, 0x00, 0x01, 0x01, 0x02, 0x02, 0x03, 0x03,
@@ -323,9 +301,6 @@ int set_mode_X(void (*horiz_fill_fn)(int, int, unsigned char[SCROLL_X_DIM]),
     }
 
     /* One display page goes at the start of video memory. */
-    // offset = # of scan lines - height of status bar
-    // offset*2-1
-    // addr = ((182 * 2) * 4)-1
     target_img = 0x05A0; // ((320*18)/4 = 1440 mem addresses)
 
     /* Map video memory and obtain permission for VGA port access. */
@@ -652,7 +627,7 @@ int draw_vert_line(int x) {
     unsigned char* addr;                // address of first pixel in build    
                                         //     buffer (without plane offset)  
     int p_off;                          // offset of plane of first pixel     
-    int y;                              // loop index over pixels             
+    int i;                              // loop index over pixels             
 
     // Check whether requested line falls in the logical view window.
     if (x < 0 || x >= SCROLL_X_DIM)
@@ -665,7 +640,7 @@ int draw_vert_line(int x) {
     (*vert_line_fn) (x, show_y, buf);
 
     // Calculate starting address in build buffer.
-    addr = img3 + (x >> 2) + show_y * SCROLL_X_WIDTH;
+    addr = img3 + (x >> 2) + (show_y * SCROLL_X_WIDTH);
     //img3 + (x >> 2) + show_y * SCROLL_X_WIDTH; 
     // * SCROLL_X_WIDTH;
     //+ x * (SCROLL_Y_DIM / 4);
@@ -675,9 +650,9 @@ int draw_vert_line(int x) {
     p_off = (3 - (x & 3));
 
     // Copy image data into appropriate planes in build buffer. 
-    for (y = show_y; y < SCROLL_X_WIDTH; y++) {
-        addr[p_off * SCROLL_SIZE] = buf[y];
-        addr = addr + SCROLL_X_WIDTH;
+    for (i = 0; i < SCROLL_Y_DIM; i++) {
+        addr[p_off * SCROLL_SIZE] = buf[i];
+        addr += SCROLL_X_WIDTH;
     }
 
     // Return success.
