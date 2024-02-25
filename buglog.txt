@@ -1,19 +1,27 @@
 buglog
 
-1. 2/20 - draw_vert_line() not working, need to understand draw_horiz_line
-    - code currently takes what is on the opposite side of screen and using that 
-    - makes some garbage pixels (some random colors) on the bottom 
-    - i thought i figured out how it works but i guess not
-    - when scrolling -> right and then back left the wall is like a chunk over from where it should be
-    2/21 - i have figured out my code is only changing the pixels that are garbage and the mirror part happens when my vert is commented
-    - significant progress has been made! still has some bugs (a few cunks are wrong) but it mostly works
-    - i never actually changes the way i was copying into build buffer to vertical, it was still horizontal
-2. 2/21 - when going back and forth black lines & blue bar on top get erased, some grey sticks around on outer border
-    - does not work on bottom, gets quite messed up when scrolling multiple times
-    - draws a little in the bottom right corner, mostly messed up in corners
-
-3. 2/21 - split screen happening at wrong location
+1. 2/20 
+    issue:
+    - draw_vert_line() only changing a few 'random' pixles to random colors
+    fix:
+    - the logic was still for creating pixels horizontally, not vertically
+2. 2/21 
+    issue:
+    - in draw_vert_line()
+    - when going back and forth black lines & blue bar on top get erased, 
+    some grey sticks around on outer border
+    fix:
+    - in my for loop i started i at show_y, it should be at 0
+    - the for loop also had i < SHOW_X_WIDTH, it should be i < SHOW_Y_DIM
+3. 2/21 
+    issue:
+    - split screen happening at wrong location
+    fix:
     - had wrong # of bits in the line compare register
-4. 2/24 - making image buffer of from string wasn't working at all 
-    - to get the individual pixel value i was using (lol & b) to set the color
-    but I needed to be using (lol& (1 << b)), a stupid logic error
+4. 2/24 
+    issue:
+    - making image buffer from string wasn't working at all 
+    fix:
+    - to get the individual pixel value i was using (lol & b) to set the color,
+    but I needed to be using (lol& (1 << b)) to actually check the bit, a stupid logic error
+
