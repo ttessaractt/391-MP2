@@ -136,5 +136,5 @@ extern int draw_horiz_line(int y);
 /* draw a vertical line at horizontal pixel x within the logical view window */
 extern int draw_vert_line(int x);
 
-extern void draw_text(unsigned char buf2[], int size);
+extern void draw_text(unsigned char *buf2);
 #endif /* MODEX_H */

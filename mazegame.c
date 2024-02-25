@@ -418,20 +418,24 @@ static void *rtc_thread(void *arg) {
         dir = DIR_STOP;
         next_dir = DIR_STOP;
 
-        // Show maze around the player's original position
-        (void)unveil_around_player(play_x, play_y);
-
-        draw_full_block(play_x, play_y, get_player_block(last_dir));
-
-        unsigned char buf2[0x1680]; //0x1680 *4
+        
+        unsigned char buf2[0x1680]; //$1440 *4, 0x05A0 * 4
         int size;
         const char * c = "lollol";
         //size_t s;
         //s = strlen(c);
         //unsigned char buf2[((s*8)/4)*18*4];
-        size = string_to_font(c, buf2, 0);
-        draw_text(buf2, size);
+
+        string_to_font(c, buf2, 0);
+        draw_text(buf2);
+
+        // Show maze around the player's original position
+        (void)unveil_around_player(play_x, play_y);
+
+        draw_full_block(play_x, play_y, get_player_block(last_dir));
+
         show_screen();
+
 
         // get first Periodic Interrupt
         ret = read(fd, &data, sizeof(unsigned long));

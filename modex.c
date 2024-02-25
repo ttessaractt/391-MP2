@@ -1031,61 +1031,30 @@ static void copy_image(unsigned char* img, unsigned short scr_addr) {
     );
 }
 
-/*
- * copy_image
- *   DESCRIPTION: Copy one plane of a screen from the buffer to the
- *                video memory.
- *   INPUTS: img2 -- a pointer to a buffer
- *           scr_addr2 -- the destination offset in video memory
- *   OUTPUTS: none
- *   RETURN VALUE: none
- *   SIDE EFFECTS: copies a plane from the buffer to video memory
- */
- 
-static void copy_image_sb(unsigned char* img2, unsigned short scr_addr2) {
-    asm volatile ("                                             \n\
-        cld                                                     \n\
-        movl $360,%%ecx                                       \n\
-        rep movsb    /* copy ECX bytes from M[ESI] to M[EDI] */ \n\
-        "
-        : // no outputs 
-        : "S"(img2), "D"(mem_image + scr_addr2)
-        : "eax", "ecx", "memory"
-    );
-}
+void draw_text(unsigned char* buf2){
+    //unsigned char* addr;    /* source address for copy             */
+    int p_off;              /* plane offset of first display plane */
+    int i;                  /* loop index over video planes        */
 
+    /*
+     * Calculate offset of build buffer plane to be mapped into plane 0
+     * of display.
+     */
+    //p_off = (3 - (show_x & 3));
 
-void draw_text(unsigned char buf2[], int size){
-    //int e; int f;
-    //for (e = 0; e < size; e ++){        //x
-      //  for (f = 0; f < 18; f ++){      //y
-            //addr2 = target_img + e + f*size;
-           // copy_image_sb(buf2, 0x0000);
+    /* Switch to the other target screen in video memory. */
+    //target_img ^= 0x4000;
 
-        //}
-    //}
-    int p_off;
-    int i;
-    //int addr;
-    //unsigned char *addr;
-    
-    //p_off = (3 - (0 & 3));
+    /* Calculate the source address. */
+    //addr = img3 + (show_x >> 2) + show_y * SCROLL_X_WIDTH;
 
-    target_img2 = 0x0000;
-
-    
-    //addr = &buf2[p_off*0x05A0];
-    //addr = (show_x >> 2) + show_y * SCROLL_X_WIDTH;
+    /* Draw to each plane in the video memory. */
     for (i = 0; i < 4; i++) {
-        SET_WRITE_MASK(1 << (i + 8));   //target specific plane
-        //addr = p_off*0x05A0;
-        copy_image_sb(&buf2[i*0x05A0], target_img2);
-        //copy_image_sb(&buf2[i*0x05A0 + ((p_off - i + 4) & 3)* SCROLL_SIZE+(p_off < i)], target_img2);
-        //copy_image_sb(addr, target_img2);
-        //memcpy(mem_image+target_img2, addr, ((size*18)/8));
-        //copy_image_sb(addr + ((p_off - i + 4) & 3) * SCROLL_SIZE + (p_off < i), target_img2);
+        SET_WRITE_MASK(1 << (i + 8));
+        p_off = (3 - (i & 3));
+        memcpy(mem_image, buf2+(p_off*1440), 1440);
+        //copy_image(addr + ((p_off - i + 4) & 3) * SCROLL_SIZE + (p_off < i), target_img);
     }
-    //copy_image_sb(buf2, target_img2);
 
     /*
      * Change the VGA registers to point the top left of the screen

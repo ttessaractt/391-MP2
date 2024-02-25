@@ -46,49 +46,63 @@ buffer will be written at video mem address 0x0000
 buf2 is in mode X mem
 */
 
-int string_to_font(const char *string, unsigned char buf2[], int show_x){
+void string_to_font(const char *string, unsigned char *buf2, int show_x){
 
-    int size;   //width
-    int x;      //keep track of starting x of char (changes)
-    int y;      //starting y of char (const)
-    x = 0; y = 1; size = 0;
     int p_off;
     //unsigned char* addr; // addr into buffer
     //unsigned char buf2[0x140*0x012];    // buffer to write into, size of status bar
-    size_t g;
-    g = strlen(string);
+    int length;
+    
     //static unsigned short target_img2 = 0x0000;
+    int start;
+    
+    int a; int b; int c; int d;
 
-    size_t a; int b; int c; int d;
-    for (a = 0; a < g; a++) {   // go through string
-        int z = string[a];      // get ASCII code of character
-        // font_data[(ASCII code)*16][y]
+    unsigned char lol;   //line of letter (lol)
+    int loc;    //location in buffer
 
-        //addr = (x >> 2) + y * (320-y);   
-        // add ascii char to buffer
+    p_off = (3 - (show_x & 3));
 
-        //drawing horizontally 1st, then vertically
+    //fill buffer with background color
+    for (d = 0; d < 5760; d++){  //prevent random color pixels from showing up
+        buf2[d] = 0x0;
+    }
 
-        //d is starting x pos for char
-        for (c = 1; c < 18; c++){   //start at y = 1 for row above
-            d = x;
-            p_off = (3 - (d & 3));
-            for (b = 0; b < 8; b++){     //go through each pixel
-                //buf2[(plane offset)+(col+(row*width))]
-                buf2[(p_off*0x05A)+(d+(c*80))] = (font_data[z*16][(c-1)] && b) ;
-                if (--p_off < 0) {
+    length = strlen(string);
+    start = (40 - length);  //center text, (80 col addr / 2) - length
+
+    for (a = 0; a < length; a++) {   // go through each char string
+        
+        for (c = 0; c < 16; c++){   //rows
+        //p_off = (3 - (show_x & 3));
+            lol = font_data[(int)string[a]][c];  //get line of letter fron font_data
+            for (b = 0; b < 8; b++){     //go through each pixel (aka bit in line of letter)
+                //loc = 0;
+                //loc += p_off*1440;  //add plane offset
+                //loc += (c+2)*80 + (b/4); //add row+col offset
+                //loc += start; //add start offset
+                //loc += a*2;  //each new character offsets the previous by 2 addr
+                loc = start + (a*2) + ((c+2)*80) + (b/4) + (p_off*1440);
+                
+                //how to check if bit is 1
+                // did not work when i tried to do lol & b (logical &)
+                // had to do lol & (1 << b)
+                //get individual bit value (bit 0-7)
+                if (lol & (1 << b)){   
+                    buf2[loc] = 0x01;
+                }
+                else{buf2[loc] = 0x02;}
+
+
+                p_off--;
+                //p_off--;
+                if (p_off < 0) {
                     p_off = 3;
-                    d++;
+                    //d++;
                 }
             }
         }
-        x += 2;
-        size += 8;
-        //x += 8;
     }
-    //size += 2;
-
-    return size;
 };
 
 /* 

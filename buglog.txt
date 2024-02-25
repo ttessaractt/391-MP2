@@ -13,4 +13,7 @@ buglog
     - draws a little in the bottom right corner, mostly messed up in corners
 
 3. 2/21 - split screen happening at wrong location
-    - had wrong # of bits in the line compare register    
+    - had wrong # of bits in the line compare register
+4. 2/24 - making image buffer of from string wasn't working at all 
+    - to get the individual pixel value i was using (lol & b) to set the color
+    but I needed to be using (lol& (1 << b)), a stupid logic error
