@@ -93,7 +93,6 @@ typedef struct {
 } game_info_t;
 
 static game_info_t game_info;
-//unsigned char buf2[SB_BUF_SIZE];        //status bar buffer
 
 /* local functions--see function headers for details */
 static int prepare_maze_level(int level);
@@ -402,6 +401,7 @@ static void *rtc_thread(void *arg) {
     unsigned int sec;
     unsigned int time;
     unsigned char buf2[SB_BUF_SIZE];        //status bar buffer
+    unsigned char background_buf[BACKGROUND_BUF_SIZE][BACKGROUND_BUF_SIZE];   //background buffer
 
     // Loop over levels until a level is lost or quit.
     for (level = 1; (level <= MAX_LEVEL) && (quit_flag == 0); level++) {
@@ -425,10 +425,7 @@ static void *rtc_thread(void *arg) {
         dir = DIR_STOP;
         next_dir = DIR_STOP;
 
-        
-        // text text->graphics and display
-        //unsigned char buf2[SB_BUF_SIZE]; //$1440 *4, 0x05A0 * 4
-        //const char * c = "lollol";
+        //initalize status bar
         min = 0;
         sec = 0;
         time = 0;
@@ -437,11 +434,12 @@ static void *rtc_thread(void *arg) {
         // Show maze around the player's original position
         (void)unveil_around_player(play_x, play_y);
 
-        draw_full_block(play_x, play_y, get_player_block(last_dir));
-
+        //display maze + status bar
+        background_buffer(play_x, play_y, background_buf);
+        draw_player(play_x, play_y, get_player_block(last_dir), get_player_mask(last_dir));
         draw_text(buf2);
         show_screen();
-
+        draw_full_block(play_x, play_y, *background_buf);
 
         // get first Periodic Interrupt
         ret = read(fd, &data, sizeof(unsigned long));
@@ -450,6 +448,8 @@ static void *rtc_thread(void *arg) {
             // Wait for Periodic Interrupt
             ret = read(fd, &data, sizeof(unsigned long));
 
+            //based on update_rate = 32
+            //keep track of time
             if (time < 32){
                 time++;
             }
@@ -458,7 +458,7 @@ static void *rtc_thread(void *arg) {
                 sec++;      //increase seconds
                 need_redraw = 1; //update screen
             }
-            if (sec == 60){
+            if (sec == 60){ //60 seconds in 1 minute
                 sec = 0;    //reset seconds
                 min++;      //increase minutes
                 need_redraw = 1;
@@ -557,14 +557,17 @@ static void *rtc_thread(void *arg) {
                             move_left(&play_x);  
                             break;
                     }
-                    draw_full_block(play_x, play_y, get_player_block(last_dir));    
+                    //draw_full_block(play_x, play_y, *background_buf);    
                     need_redraw = 1;
                 }
             }
             if (need_redraw)
+                background_buffer(play_x, play_y, background_buf);
+                draw_player(play_x, play_y, get_player_block(last_dir), get_player_mask(last_dir));
                 status_bar(buf2, level, min, sec);      //update status bar
                 draw_text(buf2);                        //display status bar
                 show_screen();    
+                draw_full_block(play_x, play_y, *background_buf);
             need_redraw = 0;
         }    
     }
@@ -574,53 +577,50 @@ static void *rtc_thread(void *arg) {
     return 0;
 }
 
+
+/*
+ * status_bar
+ *   DESCRIPTION: update string with new values of the variables for the status bar
+ *   INPUTS: buf2[] -- buffer that will have the graphical image of string
+ *           level -- current level, to be displayed in status bar
+ *           minutes -- current minute count, to be displayed in status bar
+ *           seconds -- current second count, to be displayed in status bar
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: updates the image in buf2, to be drawn to the status bar
+ */
 static void status_bar(unsigned char buf2[], unsigned int level, unsigned int minutes, unsigned int seconds){      //get/set status bar values
-//level
-//# of fruits
-//clock since start of level (in minutes and seconds)
-//int fruit;
-int fruit_count;
-int s;
-int m;
-int r;  //remainder
+
 char str[40];
-const char *string;      //full string to print
+const char *string;      
 char str_lvl[3];
 char str_fruit[3];
 char sec[3];
 char min[3];
 
-buf2[0] = '\0'; 
+buf2[0] = '\0';     //clear buffer
 
-int fruit = game_info.initial_fruit_count - get_num_fruits() ;
+int fruit = game_info.initial_fruit_count - get_num_fruits() ;      //get number of fruits
 
-//game_info.initial_fruit_count - check_for_fruit(0,0); //returns fruit # consumed, also checks (0,0) for fruit
-sprintf(str_fruit, "%d", fruit);    //convert fruit # to string
-
+//convert variables to strings
+sprintf(str_fruit, "%d", fruit);   
 sprintf(str_lvl, "%d", level);
 sprintf(sec, "%02d", seconds);
 sprintf(min, "%02d", minutes);
 
-//str_lvl = "Level " + level;
-//str_fruit = fruit + " Fruit";
-//strcat(str_lvl, level);
-//strcat(str_fruit, fruit);
-//strcat(str_fruit, " Fruit");
-//str_time = ticks;
-
+//concat string
 strcpy(str, "Level ");
 strcat(str, str_lvl);
-strcat(str, " ");
+strcat(str, "  ");
 strcat(str, str_fruit);
 strcat(str, " Fruit");
-strcat(str, " ");
+strcat(str, "  ");
 strcat(str, min);
 strcat(str, ":");
 strcat(str, sec);
-//strcat(str, a);
-//string = str_lvl + str_fruit + str_time;
 string = str;
 
+//make string into buffer
 string_to_font(string, buf2);
 };
 

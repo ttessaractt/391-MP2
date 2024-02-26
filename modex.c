@@ -592,9 +592,142 @@ void draw_full_block(int pos_x, int pos_y, unsigned char* blk) {
 
     /* Draw the clipped image. */
     for (dy = 0; dy < y_bottom; dy++, pos_y++) {
-        for (dx = 0; dx < x_right; dx++, pos_x++, blk++)
+        for (dx = 0; dx < x_right; dx++, pos_x++, blk++){
             *(img3 + (pos_x >> 2) + pos_y * SCROLL_X_WIDTH +
             (3 - (pos_x & 3)) * SCROLL_SIZE) = *blk;
+        }
+        pos_x -= x_right;
+        blk += x_left;
+    }
+}
+
+
+/*
+ * background_buffer
+ *   DESCRIPTION: store the image of the background into the background buffer
+ *                which will then be drawn to the build buffer later.
+ *   INPUTS: (pos_x,pos_y) -- coordinates of upper left corner of block
+ *           buf3 -- buffer to copy the background image into for use by draw_full_block later
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: draws into the background buffer
+ */
+void background_buffer(int pos_x, int pos_y, unsigned char buf3[12][12]) {
+    int dx, dy;          /* loop indices for x and y traversal of block */
+    int x_left, x_right; /* clipping limits in horizontal dimension     */
+    int y_top, y_bottom; /* clipping limits in vertical dimension       */
+
+    /* If block is completely off-screen, we do nothing. */
+    if (pos_x + BLOCK_X_DIM <= show_x || pos_x >= show_x + SCROLL_X_DIM ||
+        pos_y + BLOCK_Y_DIM <= show_y || pos_y >= show_y + SCROLL_Y_DIM)
+        return;
+
+    /* Clip any pixels falling off the left side of screen. */
+    if ((x_left = show_x - pos_x) < 0)
+        x_left = 0;
+    /* Clip any pixels falling off the right side of screen. */
+    if ((x_right = show_x + SCROLL_X_DIM - pos_x) > BLOCK_X_DIM)
+        x_right = BLOCK_X_DIM;
+    /* Skip the first x_left pixels in both screen position and block data. */
+    pos_x += x_left;
+
+    /*
+     * Adjust x_right to hold the number of pixels to be drawn, and x_left
+     * to hold the amount to skip between rows in the block, which is the
+     * sum of the original left clip and (BLOCK_X_DIM - the original right
+     * clip).
+     */
+    x_right -= x_left;
+    x_left = BLOCK_X_DIM - x_right;
+
+    /* Clip any pixels falling off the top of the screen. */
+    if ((y_top = show_y - pos_y) < 0)
+        y_top = 0;
+    /* Clip any pixels falling off the bottom of the screen. */
+    if ((y_bottom = show_y + SCROLL_Y_DIM - pos_y) > BLOCK_Y_DIM)
+        y_bottom = BLOCK_Y_DIM;
+    /*
+     * Skip the first y_left pixel in screen position and the first
+     * y_left rows of pixels in the block data.
+     */
+    pos_y += y_top;
+    //blk += y_top * BLOCK_X_DIM;
+    /* Adjust y_bottom to hold the number of pixel rows to be drawn. */
+    y_bottom -= y_top;
+
+    /* Draw the clipped image. */
+    for (dy = 0; dy < y_bottom; dy++, pos_y++) {
+        for (dx = 0; dx < x_right; dx++, pos_x++){
+            buf3[dy][dx] = *(img3 + (pos_x >> 2) + pos_y * SCROLL_X_WIDTH + (3 - (pos_x & 3)) * SCROLL_SIZE);
+        }
+        pos_x -= x_right;
+    }
+}
+
+/*
+ * draw_player
+ *   DESCRIPTION: draw the block with the player at the provided coordinates
+ *                mask is used to determine which player pixels are copied to the screen.
+ *   INPUTS: (pos_x,pos_y) -- coordinates of upper left corner of block
+ *           blk -- image data for block (one byte per pixel, as a C array
+ *                  of dimensions [BLOCK_Y_DIM][BLOCK_X_DIM])
+ *           mask -- the player mask from maze.c 
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: draws into the build buffer
+ */
+void draw_player(int pos_x, int pos_y, unsigned char* blk, unsigned char *mask) {
+    int dx, dy;          /* loop indices for x and y traversal of block */
+    int x_left, x_right; /* clipping limits in horizontal dimension     */
+    int y_top, y_bottom; /* clipping limits in vertical dimension       */
+
+    /* If block is completely off-screen, we do nothing. */
+    if (pos_x + BLOCK_X_DIM <= show_x || pos_x >= show_x + SCROLL_X_DIM ||
+        pos_y + BLOCK_Y_DIM <= show_y || pos_y >= show_y + SCROLL_Y_DIM)
+        return;
+
+    /* Clip any pixels falling off the left side of screen. */
+    if ((x_left = show_x - pos_x) < 0)
+        x_left = 0;
+    /* Clip any pixels falling off the right side of screen. */
+    if ((x_right = show_x + SCROLL_X_DIM - pos_x) > BLOCK_X_DIM)
+        x_right = BLOCK_X_DIM;
+    /* Skip the first x_left pixels in both screen position and block data. */
+    pos_x += x_left;
+    blk += x_left;
+
+    /*
+     * Adjust x_right to hold the number of pixels to be drawn, and x_left
+     * to hold the amount to skip between rows in the block, which is the
+     * sum of the original left clip and (BLOCK_X_DIM - the original right
+     * clip).
+     */
+    x_right -= x_left;
+    x_left = BLOCK_X_DIM - x_right;
+
+    /* Clip any pixels falling off the top of the screen. */
+    if ((y_top = show_y - pos_y) < 0)
+        y_top = 0;
+    /* Clip any pixels falling off the bottom of the screen. */
+    if ((y_bottom = show_y + SCROLL_Y_DIM - pos_y) > BLOCK_Y_DIM)
+        y_bottom = BLOCK_Y_DIM;
+    /*
+     * Skip the first y_left pixel in screen position and the first
+     * y_left rows of pixels in the block data.
+     */
+    pos_y += y_top;
+    blk += y_top * BLOCK_X_DIM;
+    /* Adjust y_bottom to hold the number of pixel rows to be drawn. */
+    y_bottom -= y_top;
+
+    /* Draw the clipped image. */
+    for (dy = 0; dy < y_bottom; dy++, pos_y++) {
+        for (dx = 0; dx < x_right; dx++, pos_x++, blk++){
+            if (*(mask + dx + (dy * BACKGROUND_BUF_SIZE)) == 1){         //draw pixel only if mask says so
+			    *(img3 + (pos_x >> 2) + pos_y * SCROLL_X_WIDTH +
+			    (3 - (pos_x & 3)) * SCROLL_SIZE) = *blk;
+		    }
+        }
         pos_x -= x_right;
         blk += x_left;
     }
@@ -1021,7 +1154,7 @@ void draw_text(unsigned char* buf2){
     for (i = 0; i < 4; i++) {
         SET_WRITE_MASK(1 << (i + 8));
         p_off = (3 - (i & 3));
-        memcpy(mem_image, buf2+(p_off*SB_BUF_PLANE_SIZE), SB_BUF_PLANE_SIZE);
+        memcpy(mem_image, buf2+(p_off*SB_BUF_PLANE_SIZE), SB_BUF_PLANE_SIZE);   //copy image to video memory
     }
 
 };

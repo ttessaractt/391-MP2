@@ -51,7 +51,7 @@
 #define TEST_MAZE_GEN 0
 
 /* Set to 1 to remove all walls as a debugging aid. (Nate Taylor, S07). */
-#define GOD_MODE 1
+#define GOD_MODE 0
 
 /* local functions--see function headers for details */
 static int mark_maze_area(int x, int y);
@@ -850,7 +850,14 @@ int main() {
 
 #endif /* TEST_MAZE_GEN */
 
-
+/* 
+ * get_num_fruits
+ *   DESCRIPTION: return the value of n_fruits
+ *   INPUTS: none 
+ *   OUTPUTS: n_fruits -- number of fruits in the level
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: none
+ */
 int get_num_fruits(){
     return n_fruits;
 };

@@ -39,51 +39,45 @@
 #include "text.h"
 
 /*
-Given string, produce a buffer that holds a graphical image of the ASCII characters in the string
-
-buffer will be written at video mem address 0x0000
-
-buf2 is in mode X mem
-*/
-
+ * rtc_thread
+ *   DESCRIPTION: given a string a graphical image of the ASCII characters in the string will be stored in buf2
+ *   INPUTS: string -- string to be converted to image
+ *           buf2 -- buffer for the graphical image to be stored in
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: buf2 will be updated
+ */
 extern void string_to_font(const char *string, unsigned char *buf2){
 
-    int p_off;      //plane offset for mode X
-    int length;     //length of string
-    int start;      //where to start drawing text
+    int p_off;                  //plane offset for mode X
+    int length;                 //length of string
+    int start;                  //where to start drawing text
     int a; int b; int c; int d; //for loop variables
-    unsigned char lol;   //line of letter (lol) in font_data
-    int loc;    //location in buffer
+    unsigned char lol;          //line of letter (lol) in font_data
+    int loc;                    //location in buffer
 
-    p_off = (3 - (0 & 3));  //inital x is 0
+    p_off = (3 - (0 & 3));      //inital x is 0
 
     //fill buffer with background color
     for (d = 0; d < SB_BUF_SIZE; d++){  //prevent random color pixels from showing up
-        buf2[d] = 0x0;
+        buf2[d] = 0x0;           //(BLACK)
     }
 
-    length = strlen(string);    //get length of string
-    start = (SB_BUF_CENTER - length);  //center text, (80 col addr / 2) - length
+    length = strlen(string);                        //get length of string
+    start = (SB_BUF_CENTER - length);               //center text, (80 col addr / 2) - length
 
-    for (a = 0; a < length; a++) {   // go through each char string
-        
-        for (c = 0; c < FONT_HEIGHT; c++){   //go through each row in letter
-
-            lol = font_data[(int)string[a]][c];  //get line of letter fron font_data
+    for (a = 0; a < length; a++) {                  // go through each char string
+        for (c = 0; c < FONT_HEIGHT; c++){          //go through each row in letter
+            lol = font_data[(int)string[a]][c];     //get line of letter fron font_data
 
             for (b = 0; b < FONT_WIDTH; b++){     //go through each pixel (aka bit in line of letter)
-                //loc = 0;
-                //loc += p_off*1440;  //add plane offset
-                //loc += (c+2)*80 + (b/4); //add row+col offset
-                //loc += start; //add start offset
-                //loc += a*2;  //each new character offsets the previous by 2 addr
-                loc = start + (a*2) + ((c+2)*80) + (b>>2) + (p_off*SB_BUF_PLANE_SIZE);
+                loc = start + (a*2) + ((c+2)*80) + (b>>2) + (p_off*SB_BUF_PLANE_SIZE);  //get location
                 
                 //check which color the pixel is
-                if (lol & (1 << (8-b))){   
-                    buf2[loc] = 0x07;   //text color
+                if (lol & (1 << (FONT_WIDTH-b))){   
+                    buf2[loc] = 0x07;   //text color (WHITE)
                 }
-                else{buf2[loc] = 0x00;} //background
+                else{buf2[loc] = 0x00;} //background (BLACK)
 
                 //check if pixel has been drawn to all 4 planes at address
                 if (--p_off < 0) {

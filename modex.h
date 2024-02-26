@@ -54,7 +54,7 @@
 #define SCROLL_X_DIM    IMAGE_X_DIM                /* full image width      */
 #define SCROLL_Y_DIM    IMAGE_Y_DIM                /* full image width      */
 #define SCROLL_X_WIDTH  (IMAGE_X_DIM / 4)          /* addresses (bytes)     */
-
+#define BACKGROUND_BUF_SIZE 12                  //size of background buffer
 /*
  * NOTES
  *
@@ -136,6 +136,13 @@ extern int draw_horiz_line(int y);
 /* draw a vertical line at horizontal pixel x within the logical view window */
 extern int draw_vert_line(int x);
 
-/*draw the image int the buffer to the status bar*/
+/* draw the image int the buffer to the status bar*/
 extern void draw_text(unsigned char *buf2);
+
+/* store old values of pixels in background buffer*/
+extern void background_buffer(int pos_x, int pos_y, unsigned char buf[BACKGROUND_BUF_SIZE][BACKGROUND_BUF_SIZE]);
+
+/* draw the player on screen with the clipping mask applied*/
+extern void draw_player(int pos_x, int pos_y, unsigned char* blk, unsigned char *p_mask);
+
 #endif /* MODEX_H */

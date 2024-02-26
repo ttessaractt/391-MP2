@@ -1,36 +1,46 @@
 buglog
 
-1. 2/20 
-    issue:
+CP1:
+2/20 
+1.  issue:
     - draw_vert_line() only changing a few 'random' pixles to random colors
     fix:
     - the logic was still for creating pixels horizontally, not vertically
-2. 2/21 
-    issue:
+2/21 
+2.  issue:
     - in draw_vert_line()
     - when going back and forth black lines & blue bar on top get erased, 
     some grey sticks around on outer border
     fix:
     - in my for loop i started i at show_y, it should be at 0
     - the for loop also had i < SHOW_X_WIDTH, it should be i < SHOW_Y_DIM
-3. 2/21 
-    issue:
+2/21 
+3.  issue:
     - split screen happening at wrong location
     fix:
     - had wrong # of bits in the line compare register
-4. 2/24 
-    issue:
+2/24 
+4.  issue:
     - making image buffer from string wasn't working at all 
     fix:
     - to get the individual pixel value i was using (lol & b) to set the color,
     but I needed to be using (lol& (1 << b)) to actually check the bit, a stupid logic error
-5. 2/25
-    issue:
+2/25
+5.  issue:
     - my letters are backwards when displaying string
     fix:
     - i was checing the LSB but my location was for the MSB, changed my bit checking to be MSB
-    issue:
+6.  issue:
     - my text on screen does not update for fruit or time, only level changes (when level changes)
     fix:
     - fruit was because I wasn't actually getting the # of fruit, fixed by adding a get_num_fruit() function to maze.c
-    - 
+    - time was not updating on screen since i never set the initial value of the variable tracking seconds
+7.  issue:
+    - something in my background buffer causes the new background to be blurred
+    fix:
+    - had to move draw_full_block out of if (dir != DIR_STOP)
+8.  issue:
+    - my player masking works but the player is just black
+    fix:
+    - i removed blk in my background_buffer function and then copied that for my draw_player function,
+    i added blk back in everywhere except for the for loop, once that was addded back in it works
