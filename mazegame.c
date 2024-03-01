@@ -104,6 +104,22 @@ static int unveil_around_player(int play_x, int play_y);
 static void *rtc_thread(void *arg);
 static void *keyboard_thread(void *arg);
 static void status_bar(unsigned char buf2[], unsigned int level, unsigned int minutes, unsigned int seconds);
+static void player_color_cycle();
+
+//colors for changing maze walls with level, 1 palette per level
+//could use the 2nd 10 palettes for wall outline color (if i want)
+static unsigned char wall_colors[20][3] = {
+    { 0x00, 0x00, 0x00 },{ 0x00, 0x00, 0x2A },  
+    { 0x00, 0x2A, 0x00 },{ 0x00, 0x2A, 0x2A },   
+    { 0x2A, 0x00, 0x00 },{ 0x2A, 0x00, 0x2A },
+    { 0x2A, 0x15, 0x00 },{ 0x2A, 0x2A, 0x2A },
+    { 0x15, 0x15, 0x15 },{ 0x15, 0x15, 0x3F },  //
+    { 0x15, 0x3F, 0x15 },{ 0x15, 0x3F, 0x3F },
+    { 0x3F, 0x15, 0x15 },{ 0x3F, 0x15, 0x3F },
+    { 0x3F, 0x3F, 0x15 },{ 0x3F, 0x3F, 0x3F },
+    { 0x00, 0x00, 0x00 },{ 0x05, 0x05, 0x05 },   
+    { 0x3F, 0x30, 0x10 },{ 0x3F, 0x20, 0x10 }   
+};
 
 
 /* 
@@ -405,6 +421,10 @@ static void *rtc_thread(void *arg) {
 
     // Loop over levels until a level is lost or quit.
     for (level = 1; (level <= MAX_LEVEL) && (quit_flag == 0); level++) {
+        //set wall colors
+        //color for level 1 is at [0][1:3]
+        set_palette(WALL_FILL_COLOR, wall_colors[level-1][0], wall_colors[level-1][1], wall_colors[level-1][2]);
+
         // Prepare for the level.  If we fail, just let the player win.
         if (prepare_maze_level(level) != 0)
             break;
@@ -561,13 +581,15 @@ static void *rtc_thread(void *arg) {
                     need_redraw = 1;
                 }
             }
-            if (need_redraw)
+            //if (need_redraw){
+            //force to always redraw
                 background_buffer(play_x, play_y, background_buf);
                 draw_player(play_x, play_y, get_player_block(last_dir), get_player_mask(last_dir));
                 status_bar(buf2, level, min, sec);      //update status bar
                 draw_text(buf2);                        //display status bar
                 show_screen();    
                 draw_full_block(play_x, play_y, *background_buf);
+            //}
             need_redraw = 0;
         }    
     }
@@ -600,7 +622,7 @@ char min[3];
 
 buf2[0] = '\0';     //clear buffer
 
-int fruit = game_info.initial_fruit_count - get_num_fruits() ;      //get number of fruits
+int fruit = get_num_fruits();      //get number of fruits
 
 //convert variables to strings
 sprintf(str_fruit, "%d", fruit);   
@@ -622,6 +644,21 @@ string = str;
 
 //make string into buffer
 string_to_font(string, buf2);
+};
+
+
+/*
+ * player_color_cycle
+ *   DESCRIPTION: 
+ *   INPUTS: 
+ *   OUTPUTS: 
+ *   RETURN VALUE: 
+ *   SIDE EFFECTS: 
+ */
+void player_color_cycle(){
+
+
+
 };
 
 

@@ -145,4 +145,7 @@ extern void background_buffer(int pos_x, int pos_y, unsigned char buf[BACKGROUND
 /* draw the player on screen with the clipping mask applied*/
 extern void draw_player(int pos_x, int pos_y, unsigned char* blk, unsigned char *p_mask);
 
+/* */
+extern void set_palette(unsigned char p_color, unsigned char r, unsigned char b, unsigned char g);
+
 #endif /* MODEX_H */

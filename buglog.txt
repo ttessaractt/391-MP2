@@ -44,3 +44,15 @@ CP1:
     fix:
     - i removed blk in my background_buffer function and then copied that for my draw_player function,
     i added blk back in everywhere except for the for loop, once that was addded back in it works
+
+/////////////////////////////////////////////////
+
+CP2:
+1. issue:
+    - trying to change wall color changes wrong palette, not sure how to access correct palette
+    fix:
+    - there are constants given in blocks.h (WALL_FILL_COLOR) that can direct my set_palette function to the correct palette
+2. issue:
+    - 
+    fix:
+    - 

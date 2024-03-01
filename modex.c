@@ -83,6 +83,8 @@
 static unsigned short mode_X_seq[NUM_SEQUENCER_REGS] = {
     0x0100, 0x2101, 0x0F02, 0x0003, 0x0604
 };
+
+//line compare reg set to 363(101101011), bit 9 in 09 & other 8 bits in 18
 static unsigned short mode_X_CRTC[NUM_CRTC_REGS] = {
     0x5F00, 0x4F01, 0x5002, 0x8203, 0x5404, 0x8005, 0xBF06, 0x1F07,
     0x0008, 0x0109, 0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
@@ -1156,6 +1158,29 @@ void draw_text(unsigned char* buf2){
         p_off = (3 - (i & 3));
         memcpy(mem_image, buf2+(p_off*SB_BUF_PLANE_SIZE), SB_BUF_PLANE_SIZE);   //copy image to video memory
     }
+
+};
+
+/*
+ * set_palette
+ *   DESCRIPTION: 
+ *   INPUTS: 
+ *   OUTPUTS: 
+ *   RETURN VALUE: 
+ *   SIDE EFFECTS: 
+ */
+void set_palette(unsigned char p_color, unsigned char r, unsigned char b, unsigned char g){
+
+    //create new palette
+    unsigned char new_palette[3] = {r, g, b};
+
+    //only write to color that will be changed
+    OUTB(0x03C8, p_color);
+
+    /* Write all 64 colors from array. */
+    //write new palette to palettes (just one palette, not 64)
+    //REP_OUTSB(0x03C9, palette_RGB, 64 * 3);
+    REP_OUTSB(0x03C9, new_palette, 3);
 
 };
 
