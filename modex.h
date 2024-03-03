@@ -47,6 +47,7 @@
  * X_WIDTH is a horizontal screen dimension in 'natural' units
  *         (addresses, characters of text, etc.)
  * Y_DIM   is a vertical screen dimension in pixels.
+ * BACKGROUND_BUF_SIZE is the x & y dimensions of the background buffer for masking
  */
 #define IMAGE_X_DIM     320   /* pixels; must be divisible by 4             */
 #define IMAGE_Y_DIM     182   /* pixels                                     */
@@ -55,6 +56,35 @@
 #define SCROLL_Y_DIM    IMAGE_Y_DIM                /* full image width      */
 #define SCROLL_X_WIDTH  (IMAGE_X_DIM / 4)          /* addresses (bytes)     */
 #define BACKGROUND_BUF_SIZE 12                  //size of background buffer
+
+
+
+/*
+ *
+*/
+#define SB_BUF_X_DIM    320             //aka 320 pixels wide
+#define SB_BUF_Y_DIM    18
+#define SB_BUF_WIDTH    (SB_BUF_X_DIM / 4)      //address
+#define SB_BUF_PLANE_SIZE       (SB_BUF_WIDTH*SB_BUF_Y_DIM)                  //size of 1 plane of status bar buffer
+#define SB_BUF_SIZE     (SB_BUF_PLANE_SIZE*4)                        //total size of status bar buffer
+
+#define SB_BUF_CENTER   (SB_BUF_WIDTH / 2)        //center address of status bar buffer
+
+/*
+ *
+ *
+*/
+//longest string is 13 letters, shortest is 6
+
+#define FRUIT_TXT_X_DIM         104             //max width of fruit text buffer
+#define FRUIT_TXT_Y_DIM         18              //height of fruit text buffer
+#define FRUIT_TXT_X_WIDTH       (FRUIT_TXT_X_DIM / 4)
+#define FRUIT_BUF_PLANE_SIZE    (FRUIT_TXT_X_DIM*FRUIT_TXT_Y_DIM)
+#define FRUIT_BUF_SIZE          (FRUIT_BUF_PLANE_SIZE*4)
+#define FRUIT_TXT_Y_MIN         6
+
+
+#define FRUIT_TIMER             128
 /*
  * NOTES
  *
@@ -136,16 +166,22 @@ extern int draw_horiz_line(int y);
 /* draw a vertical line at horizontal pixel x within the logical view window */
 extern int draw_vert_line(int x);
 
-/* draw the image int the buffer to the status bar*/
-extern void draw_text(unsigned char *buf2);
+/* draw the image in the buffer to the status bar */
+extern void draw_text(unsigned char *buf2, int width);
 
-/* store old values of pixels in background buffer*/
+/* store old values of pixels in background buffer */
 extern void background_buffer(int pos_x, int pos_y, unsigned char buf[BACKGROUND_BUF_SIZE][BACKGROUND_BUF_SIZE]);
 
-/* draw the player on screen with the clipping mask applied*/
+/* draw the player on screen with the clipping mask applied */
 extern void draw_player(int pos_x, int pos_y, unsigned char* blk, unsigned char *p_mask);
 
-/* */
-extern void set_palette(unsigned char p_color, unsigned char r, unsigned char b, unsigned char g);
+/* change the palette at p_loc to the color in rgb */
+extern void set_palette(unsigned char p_loc, unsigned char r, unsigned char g, unsigned char b);
+
+/* save the background at (pos_x, pos_y) in 2 buffers*/
+extern void get_txt_back(int pos_x, int pos_y, unsigned char *buf_txt, unsigned char *buf_back);
+
+/* draw the fruit text to the screen */
+extern void draw_txt_fruit(int pos_x, int pos_y, unsigned char* blk);
 
 #endif /* MODEX_H */

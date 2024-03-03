@@ -103,8 +103,9 @@ static void move_left(int* xpos);
 static int unveil_around_player(int play_x, int play_y);
 static void *rtc_thread(void *arg);
 static void *keyboard_thread(void *arg);
-static void status_bar(unsigned char buf2[], unsigned int level, unsigned int minutes, unsigned int seconds);
-static void player_color_cycle();
+
+//function to combine text in status bar, update text, and create buffer from text
+static void status_bar(unsigned char sb_buf[], unsigned int level, unsigned int minutes, unsigned int seconds);
 
 //colors for changing maze walls with level, 1 palette per level
 //could use the 2nd 10 palettes for wall outline color (if i want)
@@ -113,7 +114,7 @@ static unsigned char wall_colors[20][3] = {
     { 0x00, 0x2A, 0x00 },{ 0x00, 0x2A, 0x2A },   
     { 0x2A, 0x00, 0x00 },{ 0x2A, 0x00, 0x2A },
     { 0x2A, 0x15, 0x00 },{ 0x2A, 0x2A, 0x2A },
-    { 0x15, 0x15, 0x15 },{ 0x15, 0x15, 0x3F },  //
+    { 0x15, 0x15, 0x15 },{ 0x15, 0x15, 0x3F },  //start wall outline colors
     { 0x15, 0x3F, 0x15 },{ 0x15, 0x3F, 0x3F },
     { 0x3F, 0x15, 0x15 },{ 0x3F, 0x15, 0x3F },
     { 0x3F, 0x3F, 0x15 },{ 0x3F, 0x3F, 0x3F },
@@ -121,7 +122,16 @@ static unsigned char wall_colors[20][3] = {
     { 0x3F, 0x30, 0x10 },{ 0x3F, 0x20, 0x10 }   
 };
 
+static unsigned char center_colors[10][3] = {
+    { 0x00, 0x00, 0x00 },{ 0x00, 0x00, 0x2A },  
+    { 0x00, 0x2A, 0x00 },{ 0x00, 0x2A, 0x2A },   
+    { 0x2A, 0x00, 0x00 },{ 0x2A, 0x00, 0x2A },
+    { 0x2A, 0x15, 0x00 },{ 0x2A, 0x2A, 0x2A },
+    { 0x15, 0x15, 0x15 },{ 0x15, 0x15, 0x3F } 
+};
 
+int fruit_timer;    //counts how long fruit text is on screen
+int fruit_type;     //type of fruit
 /* 
  * prepare_maze_level
  *   DESCRIPTION: Prepare for a maze of a given level.  Fills the game_info
@@ -288,7 +298,12 @@ static int unveil_around_player(int play_x, int play_y) {
     int i, j;            /* loop indices for unveiling maze squares */
 
     /* Check for fruit at the player's position. */
-    (void)check_for_fruit (x, y);
+    fruit_type = check_for_fruit (x, y);
+
+    //set fruit timer to value (128, its 2^)
+    if(fruit_type != 0){
+      fruit_timer = FRUIT_TIMER;
+    }
 
     /* Unveil spaces around the player. */
     for (i = -1; i < 2; i++)
@@ -416,15 +431,25 @@ static void *rtc_thread(void *arg) {
     unsigned int min;
     unsigned int sec;
     unsigned int time;
-    unsigned char buf2[SB_BUF_SIZE];        //status bar buffer
-    unsigned char background_buf[BACKGROUND_BUF_SIZE][BACKGROUND_BUF_SIZE];   //background buffer
+    unsigned char sb_buf[SB_BUF_SIZE];        //status bar buffer
+    unsigned char background_buf[BACKGROUND_BUF_SIZE][BACKGROUND_BUF_SIZE];   //masking background buffer 
+
+    //text to print based on fruit type
+    char *fruit_text_list[NUM_FRUIT_TYPES] = {"an apple!", "grapes!", "a peach!", "a strawberry!", "a banana!", "watermelon!", "YEAH! DEW!"};
+    char *fruit = "";        //holds correct fruit text
+    unsigned char fruit_txt_background[FRUIT_TXT_X_DIM*FRUIT_TXT_Y_DIM];    //fruit text background buffer
+    unsigned char fruit_txt[FRUIT_TXT_X_DIM*FRUIT_TXT_Y_DIM];           //fruit text buffer
+    int fruit_txt_x = 0; int fruit_txt_y = 0;
+    
+    int wall_color_off = 10;    //offset to get to wall outline colors in wall_colors
+    int color_time = 0;     //index of center color
 
     // Loop over levels until a level is lost or quit.
     for (level = 1; (level <= MAX_LEVEL) && (quit_flag == 0); level++) {
         //set wall colors
         //color for level 1 is at [0][1:3]
         set_palette(WALL_FILL_COLOR, wall_colors[level-1][0], wall_colors[level-1][1], wall_colors[level-1][2]);
-
+        //set_palette(WALL_OUTLINE_COLOR, wall_colors[(level-1)*wall_color_off][0], wall_colors[(level-1)*wall_color_off][1], wall_colors[(level-1)*wall_color_off][2]);
         // Prepare for the level.  If we fail, just let the player win.
         if (prepare_maze_level(level) != 0)
             break;
@@ -449,17 +474,23 @@ static void *rtc_thread(void *arg) {
         min = 0;
         sec = 0;
         time = 0;
-        status_bar(buf2, level, min, sec);
+        status_bar(sb_buf, level, min, sec);
 
         // Show maze around the player's original position
         (void)unveil_around_player(play_x, play_y);
 
+        fruit_txt_x = play_x;
+        fruit_txt_y = play_y;
+        /* Check for fruit at the player's position. */
+        
         //display maze + status bar
         background_buffer(play_x, play_y, background_buf);
         draw_player(play_x, play_y, get_player_block(last_dir), get_player_mask(last_dir));
-        draw_text(buf2);
+        draw_text(sb_buf, SB_BUF_WIDTH);
         show_screen();
         draw_full_block(play_x, play_y, *background_buf);
+
+        
 
         // get first Periodic Interrupt
         ret = read(fd, &data, sizeof(unsigned long));
@@ -467,6 +498,15 @@ static void *rtc_thread(void *arg) {
         while ((quit_flag == 0) && (goto_next_level == 0)) {
             // Wait for Periodic Interrupt
             ret = read(fd, &data, sizeof(unsigned long));
+
+            //change player center color
+            if (time == 16){   //change player center color every half second
+                if (color_time > 10){   //if at last color
+                    color_time = 0;     //go back to 1st color
+                }
+                set_palette(PLAYER_CENTER_COLOR, center_colors[color_time][0], center_colors[color_time][1], center_colors[color_time][2]);
+                color_time++;
+            }
 
             //based on update_rate = 32
             //keep track of time
@@ -483,6 +523,7 @@ static void *rtc_thread(void *arg) {
                 min++;      //increase minutes
                 need_redraw = 1;
             }
+
 
             // Update tick to keep track of time.  If we missed some
             // interrupts we want to update the player multiple times so
@@ -530,6 +571,7 @@ static void *rtc_thread(void *arg) {
                     if (unveil_around_player(play_x, play_y)) {
                         pthread_mutex_unlock(&mtx);
                         goto_next_level = 1;
+                        fruit_timer = 0;
                         break;
                     }
                 
@@ -581,15 +623,36 @@ static void *rtc_thread(void *arg) {
                     need_redraw = 1;
                 }
             }
-            //if (need_redraw){
-            //force to always redraw
-                background_buffer(play_x, play_y, background_buf);
-                draw_player(play_x, play_y, get_player_block(last_dir), get_player_mask(last_dir));
-                status_bar(buf2, level, min, sec);      //update status bar
-                draw_text(buf2);                        //display status bar
-                show_screen();    
-                draw_full_block(play_x, play_y, *background_buf);
-            //}
+
+            //get fruit text coordinates
+            fruit_txt_x = play_x - (FRUIT_TXT_X_DIM/2);
+            fruit_txt_y = play_y - FRUIT_TXT_Y_DIM;
+
+            //if a fruit has been picked up
+            if (fruit_type != 0){
+                fruit = fruit_text_list[fruit_type-1];
+            }
+
+            if (fruit_timer > 0){
+                //get background, convert string to buffer, show floating text
+                get_txt_back(fruit_txt_x, fruit_txt_y, fruit_txt, fruit_txt_background);
+                string_to_font_fruit(fruit, fruit_txt, fruit_txt_background);
+                draw_txt_fruit(fruit_txt_x, fruit_txt_y, fruit_txt);
+            }            
+
+            //redraw background
+            background_buffer(play_x, play_y, background_buf);
+            draw_player(play_x, play_y, get_player_block(last_dir), get_player_mask(last_dir));
+            status_bar(sb_buf, level, min, sec);      //update status bar
+            draw_text(sb_buf, SB_BUF_WIDTH);                        //display status bar
+            show_screen();    
+            draw_full_block(play_x, play_y, *background_buf);
+            
+            //update floating text
+            if (fruit_timer > 0){
+                draw_txt_fruit(fruit_txt_x, fruit_txt_y, fruit_txt_background);
+                fruit_timer--;
+            }
             need_redraw = 0;
         }    
     }
@@ -603,63 +666,49 @@ static void *rtc_thread(void *arg) {
 /*
  * status_bar
  *   DESCRIPTION: update string with new values of the variables for the status bar
- *   INPUTS: buf2[] -- buffer that will have the graphical image of string
+ *   INPUTS: sb_buf[] -- buffer that will have the graphical image of string
  *           level -- current level, to be displayed in status bar
  *           minutes -- current minute count, to be displayed in status bar
  *           seconds -- current second count, to be displayed in status bar
  *   OUTPUTS: none
  *   RETURN VALUE: none
- *   SIDE EFFECTS: updates the image in buf2, to be drawn to the status bar
+ *   SIDE EFFECTS: updates the image in sb_buf, to be drawn to the status bar
  */
-static void status_bar(unsigned char buf2[], unsigned int level, unsigned int minutes, unsigned int seconds){      //get/set status bar values
+static void status_bar(unsigned char sb_buf[], unsigned int level, unsigned int minutes, unsigned int seconds){      //get/set status bar values
 
-char str[40];
-const char *string;      
-char str_lvl[3];
-char str_fruit[3];
-char sec[3];
-char min[3];
+    //init variables    
+    char str[40];
+    const char *string;      
+    char str_lvl[3];
+    char str_fruit[3];
+    char sec[3];
+    char min[3];
 
-buf2[0] = '\0';     //clear buffer
+    int fruit = get_num_fruits();      //get number of fruits
 
-int fruit = get_num_fruits();      //get number of fruits
+    //convert variables to strings
+    sprintf(str_fruit, "%d", fruit);   
+    sprintf(str_lvl, "%d", level);
+    sprintf(sec, "%02d", seconds);
+    sprintf(min, "%02d", minutes);
 
-//convert variables to strings
-sprintf(str_fruit, "%d", fruit);   
-sprintf(str_lvl, "%d", level);
-sprintf(sec, "%02d", seconds);
-sprintf(min, "%02d", minutes);
+    //concat string together
+    strcpy(str, "Level ");
+    strcat(str, str_lvl);
+    strcat(str, "  ");
+    strcat(str, str_fruit);
+    strcat(str, " Fruit");
+    strcat(str, "  ");
+    strcat(str, min);
+    strcat(str, ":");
+    strcat(str, sec);
+    string = str;
 
-//concat string
-strcpy(str, "Level ");
-strcat(str, str_lvl);
-strcat(str, "  ");
-strcat(str, str_fruit);
-strcat(str, " Fruit");
-strcat(str, "  ");
-strcat(str, min);
-strcat(str, ":");
-strcat(str, sec);
-string = str;
-
-//make string into buffer
-string_to_font(string, buf2);
+    //make string into buffer
+    string_to_font(string, sb_buf, 0x00);
 };
 
 
-/*
- * player_color_cycle
- *   DESCRIPTION: 
- *   INPUTS: 
- *   OUTPUTS: 
- *   RETURN VALUE: 
- *   SIDE EFFECTS: 
- */
-void player_color_cycle(){
-
-
-
-};
 
 
 /*

@@ -614,7 +614,7 @@ void draw_full_block(int pos_x, int pos_y, unsigned char* blk) {
  *   RETURN VALUE: none
  *   SIDE EFFECTS: draws into the background buffer
  */
-void background_buffer(int pos_x, int pos_y, unsigned char buf3[12][12]) {
+void background_buffer(int pos_x, int pos_y, unsigned char buf3[BACKGROUND_BUF_SIZE][BACKGROUND_BUF_SIZE]) {
     int dx, dy;          /* loop indices for x and y traversal of block */
     int x_left, x_right; /* clipping limits in horizontal dimension     */
     int y_top, y_bottom; /* clipping limits in vertical dimension       */
@@ -733,7 +733,144 @@ void draw_player(int pos_x, int pos_y, unsigned char* blk, unsigned char *mask) 
         pos_x -= x_right;
         blk += x_left;
     }
-}
+};
+
+
+/*
+ * get_txt_back
+ *   DESCRIPTION: save the background of size FRUIT_TXT_X_DIM*FRUIT_TXT_Y_DIM starting
+ *                at (pos_x, pos_y) into the 2 buffers passed in
+ *   INPUTS: (pos_x, pos_y) -- coordinates of upper left corner of block
+ *           buf_txt -- buffer which will have text drawn on top
+ *           buf_back -- buffer with just background (used to erase text) 
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: writes into buf_txt & buf_back
+ */
+void get_txt_back(int pos_x, int pos_y, unsigned char *buf_txt, unsigned char *buf_back){
+    int dx, dy;          /* loop indices for x and y traversal of block */
+    int x_left, x_right; /* clipping limits in horizontal dimension     */
+    int y_top, y_bottom; /* clipping limits in vertical dimension       */
+
+    /* If block is completely off-screen, we do nothing. */
+    if (pos_x + FRUIT_TXT_X_DIM <= show_x || pos_x >= show_x + SCROLL_X_DIM ||
+        pos_y + FRUIT_TXT_Y_DIM <= show_y || pos_y >= show_y + SCROLL_Y_DIM)
+        return;
+
+    /* Clip any pixels falling off the left side of screen. */
+    if ((x_left = show_x - pos_x) < 0)
+        x_left = 0;
+    /* Clip any pixels falling off the right side of screen. */
+    if ((x_right = show_x + SCROLL_X_DIM - pos_x) > FRUIT_TXT_X_DIM)
+        x_right = FRUIT_TXT_X_DIM;
+    /* Skip the first x_left pixels in both screen position and block data. */
+    pos_x += x_left;
+    buf_txt += x_left;
+    buf_back += x_left;
+
+    /*
+     * Adjust x_right to hold the number of pixels to be drawn, and x_left
+     * to hold the amount to skip between rows in the block, which is the
+     * sum of the original left clip and (BLOCK_X_DIM - the original right
+     * clip).
+     */
+    x_right -= x_left;
+    x_left = FRUIT_TXT_X_DIM - x_right;
+
+    /* Clip any pixels falling off the top of the screen. */
+    if ((y_top = show_y - pos_y) < 0)
+        y_top = 0;
+    /* Clip any pixels falling off the bottom of the screen. */
+    if ((y_bottom = show_y + SCROLL_Y_DIM - pos_y) > FRUIT_TXT_Y_DIM)
+        y_bottom = FRUIT_TXT_Y_DIM;
+    /*
+     * Skip the first y_left pixel in screen position and the first
+     * y_left rows of pixels in the block data.
+     */
+    pos_y += y_top;
+    buf_txt += y_top * FRUIT_TXT_X_DIM;
+    buf_back += y_top * FRUIT_TXT_X_DIM;
+
+    /* Adjust y_bottom to hold the number of pixel rows to be drawn. */
+    y_bottom -= y_top;
+
+    /* Draw the clipped image. */
+    for (dy = 0; dy < y_bottom; dy++, pos_y++) {
+        for (dx = 0; dx < x_right; dx++, pos_x++, buf_txt++, buf_back++){
+            *buf_txt = *(img3 + (pos_x >> 2) + pos_y * SCROLL_X_WIDTH + (3 - (pos_x & 3)) * SCROLL_SIZE);
+            *buf_back = *(img3 + (pos_x >> 2) + pos_y * SCROLL_X_WIDTH + (3 - (pos_x & 3)) * SCROLL_SIZE);
+        }
+        pos_x -= x_right;
+        buf_txt += x_left;
+        buf_back += x_left;
+    }
+
+};
+
+/*
+ * draw_txt_fruit
+ *   DESCRIPTION: 
+ *   INPUTS: (pos_x, pos_y) -- coordinates of upper left corner of block
+ *           blk -- buffer of the text
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: writes into build buffer
+ */
+void draw_txt_fruit(int pos_x, int pos_y, unsigned char* blk){
+    int dx, dy;          /* loop indices for x and y traversal of block */
+    int x_left, x_right; /* clipping limits in horizontal dimension     */
+    int y_top, y_bottom; /* clipping limits in vertical dimension       */
+
+    /* If block is completely off-screen, we do nothing. */
+    if (pos_x + FRUIT_TXT_X_DIM <= show_x || pos_x >= show_x + SCROLL_X_DIM ||
+        pos_y + FRUIT_TXT_Y_DIM <= show_y || pos_y >= show_y + SCROLL_Y_DIM)
+        return;
+
+    /* Clip any pixels falling off the left side of screen. */
+    if ((x_left = show_x - pos_x) < 0)
+        x_left = 0;
+    /* Clip any pixels falling off the right side of screen. */
+    if ((x_right = show_x + SCROLL_X_DIM - pos_x) > FRUIT_TXT_X_DIM)
+        x_right = FRUIT_TXT_X_DIM;
+    /* Skip the first x_left pixels in both screen position and block data. */
+    pos_x += x_left;
+    blk += x_left;
+
+    /*
+     * Adjust x_right to hold the number of pixels to be drawn, and x_left
+     * to hold the amount to skip between rows in the block, which is the
+     * sum of the original left clip and (BLOCK_X_DIM - the original right
+     * clip).
+     */
+    x_right -= x_left;
+    x_left = FRUIT_TXT_X_DIM - x_right;
+
+    /* Clip any pixels falling off the top of the screen. */
+    if ((y_top = show_y - pos_y) < 0)
+        y_top = 0;
+    /* Clip any pixels falling off the bottom of the screen. */
+    if ((y_bottom = show_y + SCROLL_Y_DIM - pos_y) > FRUIT_TXT_Y_DIM)
+        y_bottom = FRUIT_TXT_Y_DIM;
+    /*
+     * Skip the first y_left pixel in screen position and the first
+     * y_left rows of pixels in the block data.
+     */
+    pos_y += y_top;
+    blk += y_top * FRUIT_TXT_X_DIM;
+    /* Adjust y_bottom to hold the number of pixel rows to be drawn. */
+    y_bottom -= y_top;
+
+    /* Draw the clipped image. */
+    for (dy = 0; dy < y_bottom; dy++, pos_y++) {
+        for (dx = 0; dx < x_right; dx++, pos_x++, blk++){
+            *(img3 + (pos_x >> 2) + pos_y * SCROLL_X_WIDTH +
+            (3 - (pos_x & 3)) * SCROLL_SIZE) = *blk;
+        }
+        pos_x -= x_right;
+        blk += x_left;
+    }
+
+};
 
 /*
  * The functions inside the preprocessor block below rely on functions
@@ -1148,36 +1285,40 @@ static void copy_image(unsigned char* img, unsigned short scr_addr) {
  *   RETURN VALUE: none
  *   SIDE EFFECTS: copies from the provided buffer to video memory;
  */
-void draw_text(unsigned char* buf2){
+void draw_text(unsigned char* buf2, int width){
     int p_off;              /* plane offset of first display plane */
     int i;                  /* loop index over video planes        */
-
+    int plane_size;
+    plane_size = (FONT_HEIGHT+2)*width;
     /* Draw to each plane in the video memory. */
     for (i = 0; i < 4; i++) {
         SET_WRITE_MASK(1 << (i + 8));
         p_off = (3 - (i & 3));
-        memcpy(mem_image, buf2+(p_off*SB_BUF_PLANE_SIZE), SB_BUF_PLANE_SIZE);   //copy image to video memory
+        memcpy(mem_image, buf2+(p_off*plane_size), plane_size);   //copy image to video memory
     }
 
 };
 
 /*
  * set_palette
- *   DESCRIPTION: 
- *   INPUTS: 
- *   OUTPUTS: 
- *   RETURN VALUE: 
- *   SIDE EFFECTS: 
+ *   DESCRIPTION: sets the palette located at p_loc to the color given by the r, g, and b values
+ *   INPUTS: p_loc -- number/location of the palette (given in blocks.h)
+             r -- red value of the new palette color
+             g -- green value of the new palette color
+             b -- blue value of the new palette color
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: changes the palette color at the specified palette
  */
-void set_palette(unsigned char p_color, unsigned char r, unsigned char b, unsigned char g){
+void set_palette(unsigned char p_loc, unsigned char r, unsigned char g, unsigned char b){
 
     //create new palette
     unsigned char new_palette[3] = {r, g, b};
 
     //only write to color that will be changed
-    OUTB(0x03C8, p_color);
+    OUTB(0x03C8, p_loc);
 
-    /* Write all 64 colors from array. */
+    /* Write new palette */
     //write new palette to palettes (just one palette, not 64)
     //REP_OUTSB(0x03C9, palette_RGB, 64 * 3);
     REP_OUTSB(0x03C9, new_palette, 3);

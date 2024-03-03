@@ -53,6 +53,32 @@ CP2:
     fix:
     - there are constants given in blocks.h (WALL_FILL_COLOR) that can direct my set_palette function to the correct palette
 2. issue:
-    - 
+    - i decided to change my string to font so it wasn't hardcoded for the status bar and it no longer works
     fix:
-    - 
+    - accidently passing in my status bar X_DIM not WIDTH (so it was 4x larger than it should be)
+3. issue:
+    - no text appears on screen when fruit eaten
+    fix:
+    - i wasn't actually drawing the text to the screen, i was using my display on status bar function
+4. issue:
+    - simply displaying text (not on status bar) does not work, it is all garbled
+    fix:
+    - I was trying to use my other string to text but the locations to be drawn to are different so I had to make a new function
+    - my buffers were also the wrong size, set to status bar sizes on accident
+5. issue:
+    - my floating text draws black into the build buffer where it has been
+    fix:
+    - I wasn't getting my background buffers correctly
+6. issue:
+    - floating text is slightly off, looks to be 1 pixel, maybe 2
+    fix:
+    - i had an offset in my text to string (fruit) that was no longer needed
+7. issue:
+    - floating text not centered
+    fix:
+    - had to change my centering location formula since its not in mode X
+8. issue:
+    - wrong text prints for fruit
+    fix:
+    - had to subtract 1 from my the fruit #
+    
