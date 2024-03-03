@@ -46,7 +46,7 @@
 extern unsigned char font_data[256][16];
 
 /* text to graphics image generation function */
-extern void string_to_font(const char *string, unsigned char *buf2, unsigned char color);
+extern void string_to_font(const char *string, unsigned char *buf2, unsigned char txt_color, unsigned char back_color);
 
 /* text to graphics image generation function for fruit text */
 extern void string_to_font_fruit(const char *string, unsigned char *buf_txt, unsigned char *buf_back);

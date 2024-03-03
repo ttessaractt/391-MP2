@@ -108,7 +108,7 @@ static void *keyboard_thread(void *arg);
 static void status_bar(unsigned char sb_buf[], unsigned int level, unsigned int minutes, unsigned int seconds);
 
 //colors for changing maze walls with level, 1 palette per level
-//could use the 2nd 10 palettes for wall outline color (if i want)
+//1st 10 are for waze fill colors, 2nd 10 are for wall outline colors
 static unsigned char wall_colors[20][3] = {
     { 0x00, 0x00, 0x00 },{ 0x00, 0x00, 0x2A },  
     { 0x00, 0x2A, 0x00 },{ 0x00, 0x2A, 0x2A },   
@@ -122,6 +122,7 @@ static unsigned char wall_colors[20][3] = {
     { 0x3F, 0x30, 0x10 },{ 0x3F, 0x20, 0x10 }   
 };
 
+//player center colors
 static unsigned char center_colors[10][3] = {
     { 0x00, 0x00, 0x00 },{ 0x00, 0x00, 0x2A },  
     { 0x00, 0x2A, 0x00 },{ 0x00, 0x2A, 0x2A },   
@@ -443,13 +444,9 @@ static void *rtc_thread(void *arg) {
     
     int wall_color_off = 10;    //offset to get to wall outline colors in wall_colors
     int color_time = 0;     //index of center color
-
+    int r; int g; int b;
     // Loop over levels until a level is lost or quit.
     for (level = 1; (level <= MAX_LEVEL) && (quit_flag == 0); level++) {
-        //set wall colors
-        //color for level 1 is at [0][1:3]
-        set_palette(WALL_FILL_COLOR, wall_colors[level-1][0], wall_colors[level-1][1], wall_colors[level-1][2]);
-        //set_palette(WALL_OUTLINE_COLOR, wall_colors[(level-1)*wall_color_off][0], wall_colors[(level-1)*wall_color_off][1], wall_colors[(level-1)*wall_color_off][2]);
         // Prepare for the level.  If we fail, just let the player win.
         if (prepare_maze_level(level) != 0)
             break;
@@ -475,6 +472,17 @@ static void *rtc_thread(void *arg) {
         sec = 0;
         time = 0;
         status_bar(sb_buf, level, min, sec);
+
+        //set wall colors
+        //color for level 1 is at [0][1:3]
+        set_palette(WALL_FILL_COLOR, wall_colors[level-1][0], wall_colors[level-1][1], wall_colors[level-1][2]);
+        //set_palette(WALL_OUTLINE_COLOR, wall_colors[(level-1)*wall_color_off][0], wall_colors[(level-1)*wall_color_off][1], wall_colors[(level-1)*wall_color_off][2]);
+
+        r = (wall_colors[level-1][0] + WHITE)/2;
+        g = (wall_colors[level-1][1] + WHITE)/2;
+        b = (wall_colors[level-1][2] + WHITE)/2;
+
+        set_palette(WALL_FILL_COLOR+TRANSPARENT, r, g, b);
 
         // Show maze around the player's original position
         (void)unveil_around_player(play_x, play_y);
@@ -504,7 +512,14 @@ static void *rtc_thread(void *arg) {
                 if (color_time > 10){   //if at last color
                     color_time = 0;     //go back to 1st color
                 }
+
                 set_palette(PLAYER_CENTER_COLOR, center_colors[color_time][0], center_colors[color_time][1], center_colors[color_time][2]);
+                r = center_colors[color_time][0];
+                g = center_colors[color_time][1];
+                b = center_colors[color_time][2];
+
+                set_palette(PLAYER_CENTER_COLOR+TRANSPARENT, r, g, b);
+
                 color_time++;
             }
 
@@ -705,7 +720,7 @@ static void status_bar(unsigned char sb_buf[], unsigned int level, unsigned int 
     string = str;
 
     //make string into buffer
-    string_to_font(string, sb_buf, 0x00);
+    string_to_font(string, sb_buf, WHITE, BLACK);
 };
 
 

@@ -49,7 +49,7 @@
  *   RETURN VALUE: none
  *   SIDE EFFECTS: buf2 will be updated
  */
-extern void string_to_font(const char *string, unsigned char *buf2, unsigned char color){
+extern void string_to_font(const char *string, unsigned char *buf2, unsigned char txt_color, unsigned char back_color){
     int p_off;                  //plane offset for mode X
     int length;                 //length of string
     int start;                  //where to start drawing text
@@ -62,7 +62,7 @@ extern void string_to_font(const char *string, unsigned char *buf2, unsigned cha
     
     //fill buffer with background color
     for (d = 0; d < SB_BUF_SIZE; d++){  //prevent random color pixels from showing up
-       buf2[d] = color;           //(BLACK)
+       buf2[d] = back_color;           //(BLACK)
     }
 
     length = strlen(string);                        //get length of string
@@ -77,10 +77,10 @@ extern void string_to_font(const char *string, unsigned char *buf2, unsigned cha
                 
                 //check which color the pixel is
                 if (lol & (1 << (FONT_WIDTH-b))){   
-                    buf2[loc] = 0x07;   //text color (WHITE)
+                    buf2[loc] = txt_color;   //text color (WHITE)
                 }
                 else{
-                    buf2[loc] = color;  //no text to be drawn
+                    buf2[loc] = back_color;  //no text to be drawn
                 }
                 //else{buf2[loc] = 0x00;} //background (BLACK)
 
@@ -125,7 +125,7 @@ extern void string_to_font_fruit(const char *string, unsigned char *buf_txt, uns
 
                 //check which color the pixel is
                 if (lol & (1 << (FONT_WIDTH-b))){   
-                    buf_txt[loc] = 0x07;   //text color (WHITE)
+                    buf_txt[loc] += TRANSPARENT;   //text color (WHITE)
                 }
                 else{buf_txt[loc] = buf_back[loc];} //background (from buf_black)
             }

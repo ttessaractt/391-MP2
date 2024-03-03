@@ -85,6 +85,9 @@
 
 
 #define FRUIT_TIMER             128
+#define TRANSPARENT             0x40
+#define WHITE                   0x07
+#define BLACK                   0x00
 /*
  * NOTES
  *
