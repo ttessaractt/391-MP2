@@ -60,35 +60,42 @@
 
 
 /*
- *
+ * SB_BUF_X_DIM is the horiztonal screen dimension of the status bar
+ * SB_BUF_Y_DIM is the vertical screen dimension of the status bar
+ * SB_BUF_WIDTH is the address width (in mode X) of the status bar
+ * SB_BUF_PLANE_SIZE is the size of one plane of the status bar buffer
+ * SB_BUF_CENTER is the center of the status bar 
 */
-#define SB_BUF_X_DIM    320             //aka 320 pixels wide
-#define SB_BUF_Y_DIM    18
-#define SB_BUF_WIDTH    (SB_BUF_X_DIM / 4)      //address
-#define SB_BUF_PLANE_SIZE       (SB_BUF_WIDTH*SB_BUF_Y_DIM)                  //size of 1 plane of status bar buffer
-#define SB_BUF_SIZE     (SB_BUF_PLANE_SIZE*4)                        //total size of status bar buffer
-
-#define SB_BUF_CENTER   (SB_BUF_WIDTH / 2)        //center address of status bar buffer
+#define SB_BUF_X_DIM            320                             //320 pixels wide
+#define SB_BUF_Y_DIM            18                              //18 pixels tall
+#define SB_BUF_WIDTH            (SB_BUF_X_DIM / 4)              //address
+#define SB_BUF_PLANE_SIZE       (SB_BUF_WIDTH*SB_BUF_Y_DIM)     //size of 1 plane of status bar buffer
+#define SB_BUF_SIZE             (SB_BUF_PLANE_SIZE*4)           //total size of status bar buffer
+#define SB_BUF_CENTER           (SB_BUF_WIDTH / 2)              //center address of status bar buffer
 
 /*
- *
+ * FRUIT_TXT_X_DIM is the horitzontal screen dimension of the fruit text for the maximum string length
+ * FRUIT_TXT_Y_DIM is the vertical screen dimension of the fruit text
+ * FRUIT_TXT_X_WIDTH is the width of the fruit text
+ * FRUIT_BUF_PLANE_SIZE is the size of one full fruit text
+ * FRUIT_BUF_SIZE is the size of a full mode X buffer for fruit text 
+ * FRUIT_TXT_Y_MIN is the minumum fruit text string length
  *
 */
-//longest string is 13 letters, shortest is 6
-
-#define FRUIT_TXT_X_DIM         104             //max width of fruit text buffer
-#define FRUIT_TXT_Y_DIM         18              //height of fruit text buffer
+#define FRUIT_TXT_X_DIM         104                                     //max width of fruit text buffer
+#define FRUIT_TXT_Y_DIM         18                                      //height of fruit text buffer
 #define FRUIT_TXT_X_WIDTH       (FRUIT_TXT_X_DIM / 4)
 #define FRUIT_BUF_PLANE_SIZE    (FRUIT_TXT_X_DIM*FRUIT_TXT_Y_DIM)
 #define FRUIT_BUF_SIZE          (FRUIT_BUF_PLANE_SIZE*4)
 #define FRUIT_TXT_Y_MIN         6
 
 
-#define FRUIT_TIMER             128
-#define TRANSPARENT             0x41
-#define WHITE                   0x1F
-#define BLACK                   0x00
-#define STATUS_BAR_COLOR        0x40
+#define FRUIT_TIMER             128             //amount of time the fruit text is on screen, multiple of 2^
+#define TRANSPARENT             0x41            //index of start of transparent text in palette
+#define WHITE                   0x1F            //index of white in palette
+#define BLACK                   0x00            //index of black in palette
+#define STATUS_BAR_COLOR        0x40            //index of status bar color in palette
+
 /*
  * NOTES
  *
