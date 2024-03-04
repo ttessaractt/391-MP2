@@ -353,7 +353,7 @@
 ;			| 1 X X X | C | B | A | START |
 ;			+---------+---+---+---+-------+
 ;		byte 2  +-7-----4-+---3---+--2---+--1---+-0--+
-;			| 1 X X X | right | down | left | up |
+;			| 1 X X X | right | down | left | up flow|
 ;			+---------+-------+------+------+----+
 ; MTCP_CLK_EVENT
 ;	The clock has reached zero (when counting down) or its maximum value

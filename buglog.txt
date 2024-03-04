@@ -81,4 +81,8 @@ CP2:
     - wrong text prints for fruit
     fix:
     - had to subtract 1 from my the fruit #
-    
+9. issue: 
+    - TUX_buttons does not work, reads button input but never registers a direction moved
+    fix:
+    - part of it is i needed to swap the down and left bits before writing
+    - 

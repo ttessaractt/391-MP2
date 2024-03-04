@@ -88,6 +88,7 @@
 #define TRANSPARENT             0x40
 #define WHITE                   0x07
 #define BLACK                   0x00
+#define STATUS_BAR_COLOR        0x41
 /*
  * NOTES
  *

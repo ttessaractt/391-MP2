@@ -51,16 +51,19 @@
 #include "assert.h"
 #include "input.h"
 #include "maze.h"
+#include "module/tuxctl-ioctl.h"
+
 
 /* set to 1 and compile this file by itself to test functionality */
 #define TEST_INPUT_DRIVER  1
 
 /* set to 1 to use tux controller; otherwise, uses keyboard input */
-#define USE_TUX_CONTROLLER 0
+#define USE_TUX_CONTROLLER 1
 
 /* stores original terminal settings */
 static struct termios tio_orig;
-
+int fd;
+static int button_tester;
 /* 
  * init_input
  *   DESCRIPTION: Initializes the input controller.  As both keyboard and
@@ -130,6 +133,7 @@ cmd_t get_command(dir_t cur_dir) {
 #endif
     cmd_t command;
     int ch;
+    unsigned int buttonpress;
 
     /*
      * If the direction of motion has changed, forget the last
@@ -169,6 +173,59 @@ cmd_t get_command(dir_t cur_dir) {
     }
 #endif
     }
+     
+        if(ioctl(fd, TUX_BUTTONS, &buttonpress))
+		    printf("test buttons");
+            switch(button_tester)
+            {
+                case 0x7F: //right
+                    pushed = DIR_RIGHT;
+                    printf("TUX Right\n");
+                    break;
+
+                case 0xBF: //left
+                    pushed  = DIR_LEFT;
+                    printf("TUX Left\n");
+                    break;
+                case 0xDF: //down
+                    pushed = DIR_DOWN;
+                    printf("TUX Down\n");
+                    break;
+
+                case 0xEF: // up
+                    pushed = DIR_UP;
+                    printf("TUX Up\n");
+                    break;
+
+                case 0xF7: //c
+                    pushed = DIR_STOP;
+                    prev_cur = DIR_STOP;
+                    printf("C\n");
+                    break;
+
+                case 0xFB: //b
+                    pushed = DIR_STOP;
+                    prev_cur = DIR_STOP;
+                    printf("B\n");
+                    break;
+
+                case 0xFD: //a
+                    pushed = DIR_STOP;
+                    prev_cur = DIR_STOP;
+                    printf("A\n");
+                    break;
+
+                case 0xFE: //start
+                    pushed = DIR_STOP;
+                    prev_cur = DIR_STOP;
+                    printf("Start\n");
+                    break;
+
+                default: 
+                    pushed = DIR_STOP;
+                    break;
+
+            }
 
     /*
      * Once a direction is pushed, that command remains active
@@ -206,7 +263,8 @@ void shutdown_input() {
  */
 void display_time_on_tux(int num_seconds) {
 #if (USE_TUX_CONTROLLER != 0)
-#error "Tux controller code is not operational yet."
+//#error "Tux controller code is not operational yet."
+return;
 #endif
 }
 
@@ -227,13 +285,21 @@ int main() {
         return 3;
     }
 
-    init_input();
+    fd = open("/dev/ttyS0", O_RDWR | O_NOCTTY);
+    int ldisc_num = N_MOUSE;
+    ioctl(fd, TIOCSETD, &ldisc_num);
+    init_input ();
+    ioctl(fd, TUX_INIT);
+    //ioctl(fd, TUX_SET_LED, 0xF7F7FFFF);
+    ioctl(fd, TUX_BUTTONS, &button_tester);
+
+    //init_input();
     while (1) {
         printf("CURRENT DIRECTION IS %s\n", dir_names[dir]);
         while ((cmd = get_command(dir)) == TURN_NONE);
         if (cmd == CMD_QUIT)
             break;
-        display_time_on_tux(83);
+        //display_time_on_tux(83);
         printf ("%s\n", cmd_name[cmd]);
         dir = (dir + cmd) % 4;
     }
