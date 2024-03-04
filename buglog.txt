@@ -84,5 +84,8 @@ CP2:
 9. issue: 
     - TUX_buttons does not work, reads button input but never registers a direction moved
     fix:
-    - part of it is i needed to swap the down and left bits before writing
-    - 
+    - i needed to swap the down and left bits before writing
+10. issue:
+    - transparent text does not work
+    fix:
+    - i changed the inital values of my rgb for text which helped fix the background

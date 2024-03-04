@@ -85,10 +85,10 @@
 
 
 #define FRUIT_TIMER             128
-#define TRANSPARENT             0x40
-#define WHITE                   0x07
+#define TRANSPARENT             0x41
+#define WHITE                   0x1F
 #define BLACK                   0x00
-#define STATUS_BAR_COLOR        0x41
+#define STATUS_BAR_COLOR        0x40
 /*
  * NOTES
  *
